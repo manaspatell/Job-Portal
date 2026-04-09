@@ -1,0 +1,109 @@
+<%- include('partials/header') %>
+
+<main class="settings-layout">
+  <section class="settings-section">
+    <h1>School Profile Settings</h1>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success">Profile updated successfully!</div>
+    <% } %>
+    <form action="/school/settings" method="POST" enctype="multipart/form-data" class="settings-form">
+      <div class="form-group">
+        <label for="name">School Name</label>
+        <input type="text" id="name" name="name" value="<%= school.name %>" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="<%= school.email %>" required>
+      </div>
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" value="<%= school.location %>" required>
+      </div>
+      <div class="form-group">
+        <label for="contact">Contact Number</label>
+        <input type="text" id="contact" name="contact" value="<%= school.contact || '' %>">
+      </div>
+      <div class="form-group">
+        <label for="logo">School Logo</label>
+        <% if (school.logo) { %>
+          <div class="logo-preview"><img src="<%= school.logo %>" alt="School Logo" style="max-width:100px;"></div>
+        <% } %>
+        <input type="file" id="logo" name="logo" accept="image/*">
+      </div>
+      <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+  </section>
+
+  <section class="settings-section">
+    <h2>Subscription Details</h2>
+    <div class="subscription-info">
+      <p><strong>Current Plan:</strong> <%= school.subscription.tier.toUpperCase() %></p>
+      <p><strong>Status:</strong> <%= school.subscription.status %></p>
+      <p><strong>Start Date:</strong> <%= school.subscription.startDate ? school.subscription.startDate.toLocaleDateString() : 'N/A' %></p>
+      <p><strong>End Date:</strong> <%= school.subscription.endDate ? school.subscription.endDate.toLocaleDateString() : 'N/A' %></p>
+      <a href="/renew-subscription" class="btn btn-secondary">Renew/Upgrade Subscription</a>
+    </div>
+  </section>
+</main>
+
+<style>
+.settings-layout {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  padding: 32px;
+}
+.settings-section {
+  margin-bottom: 36px;
+}
+.settings-form .form-group {
+  margin-bottom: 18px;
+}
+.settings-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.settings-form input[type="text"],
+.settings-form input[type="email"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 15px;
+}
+.settings-form input[type="file"] {
+  margin-top: 6px;
+}
+.logo-preview {
+  margin-bottom: 8px;
+}
+.btn.btn-primary {
+  background: #667eea;
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn.btn-secondary {
+  background: #f1f5f9;
+  color: #1a202c;
+  border: 1px solid #e2e8f0;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 10px;
+  display: inline-block;
+}
+.alert.alert-success {
+  background: #e6fffa;
+  color: #2c7a7b;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+</style>

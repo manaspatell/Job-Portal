@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/toast.css">
+  <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  }
+
+  /* Sidebar Navigation */
+  .saas-container {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .saas-sidebar {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    padding: 24px 0;
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 24px;
+  }
+
+  .sidebar-brand-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .sidebar-brand-text h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+  }
+
+  .sidebar-brand-text p {
+    font-size: 12px;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sidebar-nav-item {
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+  }
+
+  .sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+  }
+
+  .sidebar-nav-item.active {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border-left-color: #3b82f6;
+  }
+
+  .sidebar-nav-icon {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .applicant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+  }
+
+  .user-info h4 {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .user-info p {
+    font-size: 11px;
+    opacity: 0.6;
+    margin: 0;
+  }
+
+  .logout-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .logout-btn:hover {
+    background: rgba(255, 59, 48, 0.3);
+  }
+
+  /* Main Content */
+  .saas-main {
+    flex: 1;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .saas-topbar {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-title h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    background: #e2e8f0;
+  }
+
+  .saas-content {
+    padding: 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 200px 200px auto;
+    gap: 16px;
+    align-items: end;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-input,
+  .filter-select {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .filter-input:focus,
+  .filter-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+
+  .btn-secondary:hover {
+    background: #e2e8f0;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .stat-item.blue .stat-icon {
+    background: #dbeafe;
+    color: #3b82f6;
+  }
+
+  .stat-item.green .stat-icon {
+    background: #dcfce7;
+    color: #10b981;
+  }
+
+  .stat-item.purple .stat-icon {
+    background: #ede9fe;
+    color: #8b5cf6;
+  }
+
+  .stat-item.orange .stat-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+  }
+
+  .stat-content {
+    flex: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  /* Applicants Table */
+  .applicants-section {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .section-meta {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .applicants-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .applicants-table th {
+    background: #f8fafc;
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .applicants-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    color: #334155;
+  }
+
+  .applicants-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .applicant-name {
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .applicant-added {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .contact-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 12px;
+  }
+
+  .contact-link:hover {
+    text-decoration: underline;
+  }
+
+  .qualification-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge.shortlisted {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.approved {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .rating-stars {
+    color: #fbbf24;
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  .action-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .action-link:hover {
+    color: #2563eb;
+  }
+
+  .gender-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #ede9fe;
+    color: #6d28d9;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* Pagination */
+  .pagination {
+    padding: 20px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-btn:hover {
+    background: #f1f5f9;
+  }
+
+  .page-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+  }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .stats-bar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .saas-container {
+      flex-direction: column;
+    }
+
+    .saas-sidebar {
+      display: none;
+    }
+
+    .saas-main {
+      width: 100%;
+    }
+
+    .filter-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-bar {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .saas-content {
+      padding: 20px;
+    }
+
+    .stats-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .applicants-table {
+      font-size: 12px;
+    }
+
+    .applicants-table th,
+    .applicants-table td {
+      padding: 12px;
+    }
+  }
+  </style>
+</head>
+<body>
+
+<div class="saas-container">
+  <!-- Sidebar -->
+  <aside class="saas-sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">🏫</div>
+      <div class="sidebar-brand-text">
+        <h3>TRMS</h3>
+        <p>Teacher Recruitment</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="/school/dashboard" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/school/applicants" class="sidebar-nav-item active">
+        <span class="sidebar-nav-icon">👥</span>
+        <span>Applicants</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">💼</span>
+        <span>Jobs</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📋</span>
+        <span>Reports</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">❓</span>
+        <span>Help & Support</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar"><%= (location && location.charAt(0).toUpperCase()) || 'S' %></div>
+        <div class="user-info">
+          <h4><%= location %></h4>
+          <p>School Account</p>
+        </div>
+      </div>
+      <form method="POST" action="/school/logout" style="display: inline;">
+        <button type="submit" class="logout-btn" title="Logout">🚪</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="saas-main">
+    <!-- Top Bar -->
+    <div class="saas-topbar">
+      <div class="topbar-title">
+        <h1>Applicants - <%= location %></h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="action-btn">🔔</button>
+        <button class="action-btn">⭐</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="saas-content">
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-item blue">
+
+          <div class="stat-content">
+            <div class="stat-label">Total Applicants</div>
+            <div class="stat-value"><%= stats.total || 0 %></div>
+          </div>
+        </div>
+
+        <div class="stat-item green">
+
+          <div class="stat-content">
+            <div class="stat-label">Shortlisted</div>
+            <div class="stat-value"><%= stats.byStatus?.shortlisted || 0 %></div>
+          </div>
+        </div>
+
+        <div class="stat-item orange">
+
+          <div class="stat-content">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value"><%= stats.byStatus?.pending || 0 %></div>
+          </div>
+        </div>
+
+        <div class="stat-item purple">
+
+          <div class="stat-content">
+            <div class="stat-label">Avg Salary</div>
+            <div class="stat-value">₹<%= stats.avgSalary ? (stats.avgSalary / 1000).toFixed(0) + 'K' : '0' %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <form method="GET" action="/school/applicants">
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label class="filter-label">Search</label>
+              <input 
+                type="text" 
+                name="search" 
+                class="filter-input" 
+                placeholder="Name, email, phone, subject or skill..."
+                value="<%= searchTerm || '' %>"
+              >
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">Status</label>
+              <select name="status" class="filter-select">
+                <option value="">All Status</option>
+                <option value="pending" <%= currentStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="shortlisted" <%= currentStatus === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                <option value="approved" <%= currentStatus === 'approved' ? 'selected' : '' %>>Approved</option>
+                <option value="rejected" <%= currentStatus === 'rejected' ? 'selected' : '' %>>Rejected</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">Gender</label>
+              <select name="gender" class="filter-select">
+                <option value="">All Genders</option>
+                <% if (genders && genders.length > 0) { %>
+                  <% genders.forEach(g => { %>
+                    <option value="<%= g %>" <%= currentGender === g ? 'selected' : '' %>><%= g %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="filter-actions">
+              <button type="submit" class="btn btn-primary">Apply</button>
+              <a href="/school/applicants" class="btn btn-secondary">Clear</a>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Applicants Table -->
+      <div class="applicants-section">
+        <div class="section-header">
+          <h2>All Applicants</h2>
+          <span class="section-meta">Showing <%= applicants.length %> of <%= stats.total || 0 %> candidates</span>
+        </div>
+
+        <% if (applicants && applicants.length > 0) { %>
+          <div class="table-wrapper">
+            <table class="applicants-table">
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th>Gender</th>
+                  <th>Contact</th>
+                  <th>Location</th>
+                  <th>Qualification</th>
+                  <th>Status</th>
+                  <th>Rating</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% applicants.forEach(app => { %>
+                  <tr>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <% 
+                          let genderLower = (app.gender || 'other').toLowerCase();
+                          let avatarImg = 'other.png';
+                          if (genderLower === 'male' || genderLower === 'm') {
+                            avatarImg = 'male.png';
+                          } else if (genderLower === 'female' || genderLower === 'f') {
+                            avatarImg = 'female.png';
+                          }
+                        %>
+                        <img src="/images/icon/<%= avatarImg %>" alt="<%= app.name %>" class="applicant-avatar">
+                        <div>
+                          <div class="applicant-name"><%= app.name || 'Unknown' %></div>
+                          <div class="applicant-added">Added <%= new Date(app.createdAt || Date.now()).toLocaleDateString('en-US', {month: 'numeric', day: 'numeric', year: 'numeric'}) %></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="gender-badge"><%= app.gender || 'N/A' %></span>
+                    </td>
+                    <td>
+                      <div class="contact-info">
+                        <a href="mailto:<%= app.email %>" class="contact-link">📧 <%= app.email %></a>
+                        <a href="tel:<%= app.phone %>" class="contact-link">📱 <%= app.phone %></a>
+                      </div>
+                    </td>
+                    <td>
+                      <div><%= app.state || 'N/A' %></div>
+                      <div style="font-size: 11px; color: #94a3b8;"><%= app.preferredLocation || 'N/A' %></div>
+                    </td>
+                    <td>
+                      <span class="qualification-badge"><%= app.highestQualification || 'N/A' %></span>
+                      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;"><%= app.collegeName || 'N/A' %></div>
+                    </td>
+                    <td>
+                      <span class="status-badge <%= app.status || 'pending' %>">
+                        <%= app.status || 'pending' %>
+                      </span>
+                      <form method="POST" action="/school/applicant/<%= app._id %>/status" class="status-update-form" style="margin-top:6px;display:flex;gap:4px;align-items:center;">
+                        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                        <select name="status" class="filter-select" style="padding:2px 8px;font-size:12px;min-width:100px;">
+                          <option value="pending" <%= app.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                          <option value="shortlisted" <%= app.status === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                          <option value="approved" <%= app.status === 'approved' ? 'selected' : '' %>>Approved</option>
+                          <option value="rejected" <%= app.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary" style="padding:2px 12px;font-size:12px;">Update</button>
+                      </form>
+                    </td>
+                    <td>
+                      <div class="rating-stars">
+                        <span class="star filled">★</span>
+                        <span class="rating-value"><%= app.rating || 0 %>/5</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <% if (app.cvPath) { %>
+                          <a href="/<%= app.cvPath.replace(/\\/g, '/') %>" target="_blank" class="action-link">
+                            📄 View CV
+                          </a>
+                        <% } else { %>
+                          <span style="color: #94a3b8; font-size: 12px;">No CV</span>
+                        <% } %>
+                        <a href="/school/applicant/<%= app._id %>" class="action-link" style="color:#3b82f6; font-size:12px; margin-top:2px;">🔍 View Details</a>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <% if (totalPages > 1) { %>
+            <div class="pagination">
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="/school/applicants?page=<%= i %><%= currentStatus ? '&status=' + currentStatus : '' %><%= currentGender ? '&gender=' + currentGender : '' %><%= searchTerm ? '&search=' + searchTerm : '' %>" 
+                   class="page-btn <%= currentPage === i ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No applicants found</h3>
+            <p>There are no applicants matching your filters. Try adjusting your search criteria.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Toast notification container (for popup messages) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts for toast and main logic -->
+  <script src="/js/toast.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

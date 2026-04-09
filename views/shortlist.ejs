@@ -1,0 +1,502 @@
+<%- include('partials/header') %>
+
+<main class="container shortlist-main">
+  <section class="shortlist-section">
+    <!-- Header -->
+    <div class="shortlist-header">
+      <div class="header-content">
+        <a href="/admin/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+        <h1><i class="fa-solid fa-star" style="color:#fbbf24"></i> Shortlisted Candidates</h1>
+        <p class="subtitle">
+          Total: <strong><%= applicants?.length || 0 %}</strong> candidates shortlisted
+        </p>
+      </div>
+      <div class="header-actions">
+        <a href="/admin/export/csv?status=shortlisted" class="btn btn-primary btn-icon">
+          <i class="fa-solid fa-file-arrow-down"></i> Export Shortlisted
+        </a>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <form method="GET" action="/admin/shortlisted" class="filter-form">
+        <div class="filter-group">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="Search by name, email, or skills..." 
+            value="<%= searchTerm || '' %>"
+            class="form-control search-input"
+          >
+        </div>
+
+        <div class="filter-group">
+          <select name="state" class="form-control">
+            <option value="">All States</option>
+            <option value="Andhra Pradesh" <%= currentState === 'Andhra Pradesh' ? 'selected' : '' %>>Andhra Pradesh</option>
+            <option value="Arunachal Pradesh" <%= currentState === 'Arunachal Pradesh' ? 'selected' : '' %>>Arunachal Pradesh</option>
+            <option value="Assam" <%= currentState === 'Assam' ? 'selected' : '' %>>Assam</option>
+            <option value="Bihar" <%= currentState === 'Bihar' ? 'selected' : '' %>>Bihar</option>
+            <option value="Chhattisgarh" <%= currentState === 'Chhattisgarh' ? 'selected' : '' %>>Chhattisgarh</option>
+            <option value="Goa" <%= currentState === 'Goa' ? 'selected' : '' %>>Goa</option>
+            <option value="Gujarat" <%= currentState === 'Gujarat' ? 'selected' : '' %>>Gujarat</option>
+            <option value="Haryana" <%= currentState === 'Haryana' ? 'selected' : '' %>>Haryana</option>
+            <option value="Himachal Pradesh" <%= currentState === 'Himachal Pradesh' ? 'selected' : '' %>>Himachal Pradesh</option>
+            <option value="Jharkhand" <%= currentState === 'Jharkhand' ? 'selected' : '' %>>Jharkhand</option>
+            <option value="Karnataka" <%= currentState === 'Karnataka' ? 'selected' : '' %>>Karnataka</option>
+            <option value="Kerala" <%= currentState === 'Kerala' ? 'selected' : '' %>>Kerala</option>
+            <option value="Madhya Pradesh" <%= currentState === 'Madhya Pradesh' ? 'selected' : '' %>>Madhya Pradesh</option>
+            <option value="Maharashtra" <%= currentState === 'Maharashtra' ? 'selected' : '' %>>Maharashtra</option>
+            <option value="Manipur" <%= currentState === 'Manipur' ? 'selected' : '' %>>Manipur</option>
+            <option value="Meghalaya" <%= currentState === 'Meghalaya' ? 'selected' : '' %>>Meghalaya</option>
+            <option value="Mizoram" <%= currentState === 'Mizoram' ? 'selected' : '' %>>Mizoram</option>
+            <option value="Nagaland" <%= currentState === 'Nagaland' ? 'selected' : '' %>>Nagaland</option>
+            <option value="Odisha" <%= currentState === 'Odisha' ? 'selected' : '' %>>Odisha</option>
+            <option value="Punjab" <%= currentState === 'Punjab' ? 'selected' : '' %>>Punjab</option>
+            <option value="Rajasthan" <%= currentState === 'Rajasthan' ? 'selected' : '' %>>Rajasthan</option>
+            <option value="Sikkim" <%= currentState === 'Sikkim' ? 'selected' : '' %>>Sikkim</option>
+            <option value="Tamil Nadu" <%= currentState === 'Tamil Nadu' ? 'selected' : '' %>>Tamil Nadu</option>
+            <option value="Telangana" <%= currentState === 'Telangana' ? 'selected' : '' %>>Telangana</option>
+            <option value="Tripura" <%= currentState === 'Tripura' ? 'selected' : '' %>>Tripura</option>
+            <option value="Uttar Pradesh" <%= currentState === 'Uttar Pradesh' ? 'selected' : '' %>>Uttar Pradesh</option>
+            <option value="Uttarakhand" <%= currentState === 'Uttarakhand' ? 'selected' : '' %>>Uttarakhand</option>
+            <option value="West Bengal" <%= currentState === 'West Bengal' ? 'selected' : '' %>>West Bengal</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+          <a href="/admin/shortlisted" class="btn btn-secondary"><i class="fa-solid fa-rotate-right"></i> Reset</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Candidates Grid View -->
+    <% if (applicants && applicants.length > 0) { %>
+      <div class="candidates-grid">
+        <% applicants.forEach(candidate => { %>
+          <div class="candidate-card">
+            <!-- Card Header -->
+            <div class="card-top">
+              <div class="name-rating">
+                <h3><%= candidate.name %></h3>
+                <div class="rating-display">
+                  <% for (let i = 1; i <= 5; i++) { %>
+                    <span class="star-sm <%= candidate.rating >= i ? 'filled' : '' %>"><i class="fa-solid fa-star"></i></span>
+                  <% } %>
+                  <span class="rating-num">(<%= candidate.rating || 0 %>)</span>
+                </div>
+              </div>
+              <span class="approval-badge approved"><i class="fa-solid fa-star"></i> Shortlisted</span>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="contact-info">
+              <div class="contact-item">
+                <span class="icon"><i class="fa-solid fa-envelope"></i></span>
+                <a href="mailto:<%= candidate.email %>"><%= candidate.email %></a>
+              </div>
+              <div class="contact-item">
+                <span class="icon"><i class="fa-solid fa-phone"></i></span>
+                <a href="tel:<%= candidate.phone %>"><%= candidate.phone %></a>
+              </div>
+              <div class="contact-item">
+                <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
+                <span><%= candidate.state %>, <%= candidate.city %></span>
+              </div>
+            </div>
+
+            <!-- Education -->
+            <div class="education-info">
+              <div class="info-block">
+                <strong><%= candidate.highestQualification %></strong>
+                <p><%= candidate.collegeName %></p>
+                <small><%= candidate.collegeTier %></small>
+              </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="skills-section">
+              <% if (candidate.skills) { %>
+                <% candidate.skills.split(',').map(s => s.trim()).slice(0, 3).forEach(skill => { %>
+                  <span class="skill"><%= skill %></span>
+                <% }) %>
+              <% } %>
+            </div>
+
+            <!-- Salary -->
+            <div class="salary-info">
+              Expected: <strong>₹<%= candidate.expectedSalary?.toLocaleString() %>/year</strong>
+            </div>
+
+            <!-- Tags -->
+            <% if (candidate.tags && candidate.tags.length > 0) { %>
+              <div class="tags-section">
+                <% candidate.tags.forEach(tag => { %>
+                  <span class="tag-sm"><%= tag %></span>
+                <% }) %>
+              </div>
+            <% } %>
+
+            <!-- Actions -->
+            <div class="card-actions">
+              <a href="/admin/applicant/<%= candidate._id %>" class="btn btn-info btn-sm">View Full Profile</a>
+              <% if (candidate.cvPath) { %>
+                <a href="/<%= candidate.cvPath %>" target="_blank" class="btn btn-primary btn-sm"><i class="fa-solid fa-file-lines"></i> CV</a>
+              <% } %>
+              <button onclick="removeFromShortlist('<%= candidate._id %>')" class="btn btn-secondary btn-sm">Remove</button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-star" style="font-size:40px;color:#fbbf24"></i></div>
+        <h3>No Shortlisted Candidates</h3>
+        <p>Go back to the dashboard and mark candidates as shortlisted to see them here.</p>
+        <a href="/admin/dashboard" class="btn btn-primary">← Back to Dashboard</a>
+      </div>
+    <% } %>
+
+  </section>
+</main>
+
+<script>
+  function removeFromShortlist(candidateId) {
+    showConfirm(\n      'Remove this candidate from shortlist?',
+      () => {
+        fetch(`/admin/applicant/${candidateId}/status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: 'pending' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Removed from shortlist', 'success');
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            showToast('Error removing from shortlist', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showToast('Error removing from shortlist', 'error');
+        });
+      }
+    );
+  }
+</script>
+
+<style>
+  .shortlist-main {
+    padding: 30px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+
+  .shortlist-section {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .shortlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .header-content h1 {
+    margin: 10px 0 5px 0;
+    color: #333;
+    font-size: 28px;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .filter-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+  }
+
+  .search-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .candidates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+
+  .candidate-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .candidate-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .card-top {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .name-rating {
+    flex: 1;
+  }
+
+  .name-rating h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+  }
+
+  .rating-display {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .star-sm {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .star-sm.filled {
+    color: #ffc107;
+  }
+
+  .rating-num {
+    font-size: 11px;
+    margin-left: 5px;
+    opacity: 0.8;
+  }
+
+  .approval-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .approval-badge.approved {
+    background: #4caf50;
+  }
+
+  .contact-info {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .contact-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .contact-item a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .contact-item a:hover {
+    text-decoration: underline;
+  }
+
+  .icon {
+    font-size: 14px;
+  }
+
+  .education-info {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background: #f9f9f9;
+  }
+
+  .info-block {
+    font-size: 13px;
+  }
+
+  .info-block strong {
+    display: block;
+    color: #333;
+    margin-bottom: 3px;
+  }
+
+  .info-block p {
+    margin: 0 0 3px 0;
+    color: #666;
+  }
+
+  .info-block small {
+    color: #999;
+  }
+
+  .skills-section {
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .skill {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  .salary-info {
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    font-size: 13px;
+  }
+
+  .tags-section {
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag-sm {
+    background: #fff3cd;
+    color: #856404;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  .card-actions {
+    padding: 15px 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .empty-state {
+    background: white;
+    border-radius: 8px;
+    padding: 60px 20px;
+    text-align: center;
+    margin: 40px 0;
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  .empty-state h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+
+  .empty-state p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .shortlist-header {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .filter-form {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      width: 100%;
+    }
+
+    .candidates-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<%- include('partials/footer') %>

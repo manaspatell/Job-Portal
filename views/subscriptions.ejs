@@ -1,0 +1,690 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+
+<main class="admin-theme">
+  <div class="ad-shell">
+    <%- include('partials/admin-sidebar', { activePage: 'subscriptions' }) %>
+
+    <section class="ad-main">
+      <header class="ad-topbar">
+        <div>
+          <div class="ad-page-title">Subscription Management</div>
+          <div class="ad-page-subtitle">Monitor and manage school subscription tiers</div>
+        </div>
+        <div class="ad-topbar-actions">
+            <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+        </div>
+      </header>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="ad-alert ad-alert-error">
+        <strong>Error:</strong> <%= error %>
+      </div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="ad-alert ad-alert-success">
+        <strong>Success:</strong> <%= success %>
+      </div>
+    <% } %>
+
+    <!-- Subscription Stats Cards -->
+    <div class="ad-kpis">
+      <div class="stat-card">
+        <div class="stat-icon"><img src="/images/subscriptions/Diamond.png" alt="Diamond" class="tier-img"></div>
+        <div class="stat-content">
+          <div class="stat-label">Diamond Subscriptions</div>
+          <div class="stat-value"><%= diamondCount || 0 %></div>
+          <div class="stat-subtext">1 year access</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><img src="/images/subscriptions/gold.jpg" alt="Gold" class="tier-img"></div>
+        <div class="stat-content">
+          <div class="stat-label">Gold Subscriptions</div>
+          <div class="stat-value"><%= goldCount || 0 %></div>
+          <div class="stat-subtext">6 months access</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><img src="/images/subscriptions/Silver.png" alt="Silver" class="tier-img"></div>
+        <div class="stat-content">
+          <div class="stat-label">Silver Subscriptions</div>
+          <div class="stat-value"><%= silverCount || 0 %></div>
+          <div class="stat-subtext">30 days access</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-chart-simple"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">Total Subscriptions</div>
+          <div class="stat-value"><%= totalSubscriptions || 0 %></div>
+          <div class="stat-subtext">Active + Expired</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="ad-card">
+      <div class="ad-card-head">
+        <div class="ad-card-title">Filters</div>
+        <div class="ad-card-sub">Filter subscriptions by tier or search a school</div>
+      </div>
+      <div style="padding: 12px 14px;">
+      <div class="ad-form-row">
+      <select class="ad-select" id="subscriptionFilter" onchange="filterBySubscription(this.value)">
+        <option value="">All Subscriptions</option>
+        <option value="silver">Silver - 30 Days</option>
+        <option value="gold">Gold - 6 Months</option>
+        <option value="diamond">Diamond - 1 Year</option>
+        <option value="none">No Subscription</option>
+        <option value="expired">Expired</option>
+      </select>
+      <input type="text" class="ad-input" id="searchSchools" placeholder="Search school name or email..." />
+      <button type="button" class="ad-btn" onclick="clearSubscriptionFilters()" style="margin-left:6px;">Clear</button>
+      </div>
+      </div>
+    </div>
+
+    <!-- Subscriptions Table -->
+    <% if (schools && schools.length > 0) { %>
+      <div class="ad-card">
+        <div class="ad-table-wrap">
+        <table class="ad-table subscriptions-table">
+          <thead>
+            <tr>
+              <th>School Name</th>
+              <th>Email</th>
+              <th>Subscription Tier</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Days Remaining</th>
+              <th>Time Remaining</th>
+              <th>Status</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% schools.forEach(school => { 
+              const subStartDate = school.subscription?.startDate ? new Date(school.subscription.startDate) : null;
+              const subEndDate = school.subscription?.endDate ? new Date(school.subscription.endDate) : null;
+              const now = new Date();
+              const daysRemaining = subEndDate ? Math.ceil((subEndDate - now) / (1000 * 60 * 60 * 24)) : null;
+              const isExpired = subEndDate && now > subEndDate;
+              const tier = school.subscription?.tier || 'none';
+            %>
+              <tr class="<%= isExpired && tier !== 'none' ? 'row-expired' : '' %>">
+                <td class="col-name">
+                  <strong><%= school.name %></strong>
+                </td>
+                <td class="col-email">
+                  <code><%= school.email %></code>
+                </td>
+                <td class="col-tier">
+                  <% if (tier === 'silver') { %>
+                    <span class="tier-badge tier-silver">
+                      <img src="/images/subscriptions/Silver.png" alt="Silver" class="badge-tier-img"> Silver
+                    </span>
+                  <% } else if (tier === 'gold') { %>
+                    <span class="tier-badge tier-gold">
+                      <img src="/images/subscriptions/gold.jpg" alt="Gold" class="badge-tier-img"> Gold
+                    </span>
+                  <% } else if (tier === 'diamond') { %>
+                    <span class="tier-badge tier-diamond">
+                      <img src="/images/subscriptions/Diamond.png" alt="Diamond" class="badge-tier-img"> Diamond
+                    </span>
+                  <% } else { %>
+                    <span class="tier-badge tier-none">None</span>
+                  <% } %>
+                </td>
+                <td class="col-dates">
+                  <% if (subStartDate) { %>
+                    <%= subStartDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                  <% } else { %>
+                    <span class="text-muted">—</span>
+                  <% } %>
+                </td>
+                <td class="col-dates">
+                  <% if (subEndDate) { %>
+                    <%= subEndDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                  <% } else { %>
+                    <span class="text-muted">—</span>
+                  <% } %>
+                </td>
+                <td class="col-days">
+                  <% if (daysRemaining === null) { %>
+                    <span class="text-muted">N/A</span>
+                  <% } else if (isExpired) { %>
+                    <span class="badge-expired">Expired</span>
+                  <% } else if (daysRemaining <= 7) { %>
+                    <span class="badge-critical"><%= daysRemaining %> days</span>
+                  <% } else if (daysRemaining <= 30) { %>
+                    <span class="badge-warning"><%= daysRemaining %> days</span>
+                  <% } else { %>
+                    <span class="badge-ok"><%= daysRemaining %> days</span>
+                  <% } %>
+                </td>
+                <td class="col-live-timer">
+                  <% if (subEndDate && !isExpired) { %>
+                    <div class="live-timer" 
+                         data-end-date="<%= subEndDate.toISOString() %>"
+                         data-school-id="<%= school._id %>">
+                      <span class="timer-display">Calculating...</span>
+                    </div>
+                  <% } else if (isExpired) { %>
+                    <span class="text-expired">⏰ Subscription ended</span>
+                  <% } else { %>
+                    <span class="text-muted">—</span>
+                  <% } %>
+                </td>
+                <td class="col-status">
+                  <% if (tier === 'none') { %>
+                    <span class="status-text">No subscription</span>
+                  <% } else if (isExpired) { %>
+                    <span class="status-expired">Expired</span>
+                  <% } else { %>
+                    <span class="status-active">Active</span>
+                  <% } %>
+                </td>
+                <td class="col-actions">
+                  <div class="kebab-menu">
+                    <button class="btn btn-secondary action-dropdown" onclick="toggleKebab(event)">
+                      <i class="fa-solid fa-ellipsis-vertical" style="margin-right:8px;font-size:14px;"></i>
+                      <span class="action-label">Actions</span>
+                      <i class="fa-solid fa-caret-down" style="margin-left:8px;font-size:12px;"></i>
+                    </button>
+                    <div class="kebab-dropdown" onclick="event.stopPropagation()">
+                      <table class="dropdown-table" role="presentation">
+                        <tbody>
+                          <tr>
+                            <td class="dt-action">Upgrade / Change</td>
+                            <td class="dt-control">
+                              <button class="btn btn-primary" onclick="openUpgradeModal('<%= school._id %>', '<%= school.name %>', '<%= tier %>')">Select</button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="dt-action">Renew</td>
+                            <td class="dt-control">
+                              <button class="btn btn-primary" onclick="openRenewModal('<%= school._id %>', '<%= school.name %>', '<%= tier %>')">Select</button>
+                            </td>
+                          </tr>
+                          <% if (tier !== 'none') { %>
+                          <tr>
+                            <td class="dt-action">Cancel Subscription</td>
+                            <td class="dt-control">
+                              <button class="btn btn-secondary kebab-danger" onclick="cancelSubscription('<%= school._id %>', '<%= school.name %>')">Cancel</button>
+                            </td>
+                          </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="ad-card">
+        <div style="padding: 28px; text-align:center;">
+          <div style="margin-bottom: 10px;">
+            <img src="/images/subscriptions/Silver.png" alt="No Subscriptions" class="empty-state-img">
+          </div>
+          <div class="ad-card-title" style="font-size: 16px;">No Subscriptions</div>
+          <div class="ad-card-sub" style="margin-top:6px;">Schools without active subscriptions will appear here</div>
+        </div>
+      </div>
+    <% } %>
+    </section>
+  </div>
+</main>
+
+<!-- Upgrade Modal -->
+<div id="upgradeModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Upgrade/Change Subscription</h3>
+      <button class="modal-close" onclick="closeUpgradeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="upgrade-school-name" style="font-weight: 600; margin-bottom: 16px;"></p>
+      <div class="plan-options">
+        <label class="plan-card">
+          <input type="radio" name="upgradePlan" value="silver" class="plan-radio">
+          <div class="plan-info">
+            <div class="plan-name">Silver - 30 Days</div>
+            <div class="plan-desc">Basic access for 30 days</div>
+          </div>
+        </label>
+        <label class="plan-card">
+          <input type="radio" name="upgradePlan" value="gold" class="plan-radio">
+          <div class="plan-info">
+            <div class="plan-name">Gold - 6 Months</div>
+            <div class="plan-desc">Extended access for 6 months</div>
+          </div>
+        </label>
+        <label class="plan-card">
+          <input type="radio" name="upgradePlan" value="diamond" class="plan-radio" checked>
+          <div class="plan-info">
+            <div class="plan-name">Diamond - 1 Year</div>
+            <div class="plan-desc">Premium access for 1 year</div>
+          </div>
+        </label>
+      </div>
+      <form id="upgradeForm" method="POST" action="" style="margin-top: 20px;">
+        <input type="hidden" name="newTier" id="newTierInput" value="diamond">
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Apply Plan</button>
+          <button type="button" class="btn btn-secondary" onclick="closeUpgradeModal()" style="flex: 1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Renew Modal -->
+<div id="renewModal" class="modal" style="display: none;">
+  <div class="modal-content modal-compact">
+    <div class="modal-header">
+      <h3>Renew Subscription</h3>
+      <button class="modal-close" onclick="closeRenewModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="renew-school-name" style="font-weight: 600; margin-bottom: 16px;"></p>
+      <p style="color: #666; margin-bottom: 20px;">Current subscription will be extended by the selected period.</p>
+      <form id="renewForm" method="POST" action="" style="display: flex; flex-direction: column; gap: 10px;">
+        <select class="form-control" name="renewPlan" required onchange="document.getElementById('renewTierInput').value = this.value">
+          <option value="">-- Select Renewal Period --</option>
+          <option value="silver">Silver - 30 Days</option>
+          <option value="gold">Gold - 6 Months</option>
+          <option value="diamond">Diamond - 1 Year</option>
+        </select>
+        <input type="hidden" name="renewTier" id="renewTierInput" value="">
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Renew</button>
+          <button type="button" class="btn btn-secondary" onclick="closeRenewModal()" style="flex: 1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* SaaS-style polished subscription page styles */
+
+  :root {
+    --saas-bg: #f5f7fb;
+    --card-bg: #ffffff;
+    --muted: #6b7287;
+    --text: #12213a;
+    --accent: #3b5ccc;
+    --success: #10b981;
+    --danger: #ef4444;
+    --radius: 10px;
+    --base-font: 14px;
+  }
+
+  .ad-main {
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    color: var(--text);
+    font-size: var(--base-font);
+    background: transparent;
+  }
+
+  .ad-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid #eef2ff;
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 18px rgba(17,24,39,0.04);
+  }
+
+  .stat-icon { width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .stat-value { font-size: 20px; font-weight: 800; color: var(--text); }
+
+  .ad-card { background: var(--card-bg); border: 1px solid #eef2ff; border-radius: var(--radius); padding: 14px; box-shadow: 0 6px 18px rgba(17,24,39,0.03); }
+
+  .filters-bar { display:flex; gap:10px; align-items:center; padding:10px; background:transparent; border:none; }
+  .ad-select, .ad-input { padding:10px 12px; border-radius:8px; border:1px solid #e6edf8; font-size:13px; }
+
+  .ad-table-wrap { overflow: auto; }
+  .subscriptions-table { width:100%; border-collapse: collapse; min-width: 980px; }
+
+  .subscriptions-table thead { background: transparent; }
+  .subscriptions-table th { padding: 12px 14px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+  .subscriptions-table td { padding: 12px 14px; font-size: 14px; color: var(--text); vertical-align: middle; }
+
+  .subscriptions-table tbody tr { border-bottom: 1px solid #f3f5fb; }
+  .subscriptions-table tbody tr:hover { background: #fbfdff; }
+
+  .col-email code { background:#f3f5fb; padding:4px 8px; border-radius:6px; font-family: inherit; color: var(--accent); font-size:13px; }
+
+  .tier-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; font-weight:700; font-size:13px; }
+  .badge-tier-img { width:22px; height:22px; object-fit:cover; border-radius:4px; }
+
+  .tier-silver { background: linear-gradient(90deg,#eef7ff,#dbeafe); color:#0f172a; }
+  .tier-gold { background: linear-gradient(90deg,#fff9ec,#fff1c7); color:#7c4a12; }
+  .tier-diamond { background: linear-gradient(90deg,#fbf6ff,#f3e8ff); color:#4b1366; }
+  .tier-none { background:#f3f4f6; color:var(--muted); }
+
+  .badge-ok { padding:6px 10px; border-radius:8px; background:#f0fdf4; color:#065f46; font-weight:700; }
+  .badge-warning { padding:6px 10px; border-radius:8px; background:#fff7ed; color:#92400e; font-weight:700; }
+  .badge-critical { padding:6px 10px; border-radius:8px; background:#fff1f2; color:#7f1d1d; font-weight:700; }
+
+  .status-expired { color: #b91c1c; font-weight:700; }
+  .status-active { color: #065f46; font-weight:700; }
+
+  .col-actions { text-align:right; }
+
+  .kebab-menu { position: relative; display:inline-block; }
+
+  .kebab-dropdown { display:none; position:absolute; right:0; top:calc(100% + 8px); background: var(--card-bg); border:1px solid #eef2ff; border-radius:8px; box-shadow: 0 8px 30px rgba(2,6,23,0.08); z-index:200; min-width:200px; }
+
+  .dropdown-table td { padding:10px 14px; font-size:13px; color:var(--text); }
+  .dropdown-table .dt-control { text-align:right; width:140px; }
+
+  .kebab-dropdown.show { display:block; }
+
+  .btn { padding: 9px 14px; font-size: 13px; font-weight: 700; border-radius: 8px; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; box-shadow: 0 6px 18px rgba(59,92,204,0.18); }
+  .btn-primary:hover { background: #2e4aaa; }
+  .btn-secondary { background: #fff; color: var(--text); border:1px solid #e6edf8; }
+
+  .kebab-danger { background: transparent; border: 1px dashed rgba(239,68,68,0.12); color: var(--danger); padding:8px 10px; border-radius:8px; }
+
+  .empty-state { padding:48px 24px; border-radius: var(--radius); text-align:center; }
+
+  .modal { position: fixed; inset:0; background: rgba(2,6,23,0.45); display:flex; align-items:center; justify-content:center; z-index:1000; }
+  .modal-content { background: var(--card-bg); border-radius:12px; box-shadow: 0 20px 60px rgba(2,6,23,0.12); width: 100%; max-width: 560px; }
+
+  .modal-header h3 { font-size:16px; }
+
+  .plan-card { padding:12px; border-radius:8px; border:1px solid #eef2ff; }
+  .plan-card:has(input:checked) { box-shadow: inset 0 0 0 1px rgba(59,92,204,0.06); border-color: #dbeafe; }
+
+  .password-strength .strength-fill { transition: width 0.3s ease; }
+
+  .live-timer { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Courier New', monospace; font-size: 13px; font-weight:700; }
+
+  @media (max-width: 1024px) { .subscriptions-table { min-width: 720px; } }
+  @media (max-width: 768px) { .subscriptions-table { min-width: 480px; } .ad-kpis { grid-template-columns: 1fr; } }
+
+  .alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+  }
+
+  .col-live-timer {
+    min-width: 160px;
+  }
+
+  .live-timer {
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .timer-display {
+    display: inline-block;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 8px;
+    border: 1px solid #bae6fd;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .timer-critical {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+    border-color: #fca5a5 !important;
+    color: #991b1b !important;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .timer-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    border-color: #fcd34d !important;
+    color: #92400e !important;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .text-expired {
+    color: #dc2626;
+    font-weight: 500;
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  function filterBySubscription(tier) {
+    let url = '/admin/subscriptions';
+    if (tier) {
+      url += '?tier=' + tier;
+    }
+    window.location.href = url;
+  }
+
+  function openUpgradeModal(id, name, currentTier) {
+    document.getElementById('upgrade-school-name').textContent = 'Upgrading: ' + name;
+    document.getElementById('upgradeForm').action = '/admin/subscriptions/upgrade/' + id;
+    document.getElementById('upgradeModal').style.display = 'flex';
+  }
+
+  function closeUpgradeModal() {
+    document.getElementById('upgradeModal').style.display = 'none';
+  }
+
+  function openRenewModal(id, name, tier) {
+    document.getElementById('renew-school-name').textContent = 'Renewing: ' + name;
+    document.getElementById('renewForm').action = '/admin/subscriptions/renew/' + id;
+    document.getElementById('renewModal').style.display = 'flex';
+  }
+
+  function closeRenewModal() {
+    document.getElementById('renewModal').style.display = 'none';
+  }
+
+  function cancelSubscription(id, name) {
+    showConfirm(
+      'Cancel subscription for ' + name + '? This action cannot be undone.',
+      () => {
+        fetch('/admin/subscriptions/cancel/' + id, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              showToast('Subscription cancelled successfully', 'success');
+              setTimeout(() => location.reload(), 1000);
+            } else {
+              showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+            }
+          })
+          .catch(err => showToast('Error: ' + err.message, 'error'));
+      }
+    );
+  }
+
+  function toggleKebab(event) {
+    event.stopPropagation();
+    // Ensure we find the dropdown even if an inner icon/span was clicked
+    const btn = event.currentTarget || event.target.closest('button');
+    if (!btn) return;
+    const menu = btn.closest('.kebab-menu');
+    if (!menu) return;
+    const dropdown = menu.querySelector('.kebab-dropdown');
+    if (!dropdown) return;
+    document.querySelectorAll('.kebab-dropdown.show').forEach(d => {
+      if (d !== dropdown) d.classList.remove('show');
+    });
+    dropdown.classList.toggle('show');
+  }
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.kebab-dropdown.show').forEach(d => d.classList.remove('show'));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeUpgradeModal();
+      closeRenewModal();
+      document.querySelectorAll('.kebab-dropdown.show').forEach(d => d.classList.remove('show'));
+    }
+  });
+
+  window.onclick = function(event) {
+    const upgradeModal = document.getElementById('upgradeModal');
+    const renewModal = document.getElementById('renewModal');
+    if (event.target === upgradeModal) closeUpgradeModal();
+    if (event.target === renewModal) closeRenewModal();
+  };
+
+  // Update newTierInput when plan selection changes
+  document.querySelectorAll('input[name="upgradePlan"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.getElementById('newTierInput').value = radio.value;
+    });
+  });
+
+  // Live Timer Countdown Function
+  function updateLiveTimers() {
+    const timers = document.querySelectorAll('.live-timer');
+    
+    timers.forEach(timer => {
+      const endDate = new Date(timer.getAttribute('data-end-date'));
+      const now = new Date();
+      const diff = endDate - now;
+      
+      if (diff <= 0) {
+        timer.innerHTML = '<span class="text-expired">⏰ Subscription ended</span>';
+        return;
+      }
+      
+      // Calculate time components
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      // Format display
+      let timeString = '';
+      if (days > 0) {
+        timeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      } else if (hours > 0) {
+        timeString = `${hours}h ${minutes}m ${seconds}s`;
+      } else {
+        timeString = `${minutes}m ${seconds}s`;
+      }
+      
+      const displaySpan = timer.querySelector('.timer-display');
+      displaySpan.textContent = timeString;
+      
+      // Apply color coding based on time remaining
+      if (days <= 7) {
+        displaySpan.classList.add('timer-critical');
+        displaySpan.classList.remove('timer-warning');
+      } else if (days <= 30) {
+        displaySpan.classList.add('timer-warning');
+        displaySpan.classList.remove('timer-critical');
+      } else {
+        displaySpan.classList.remove('timer-critical', 'timer-warning');
+      }
+    });
+  }
+  
+  // Update timers every second
+  updateLiveTimers(); // Initial call
+  setInterval(updateLiveTimers, 1000); // Update every second
+
+  // Submit upgrade form via AJAX to show popup instead of raw JSON response
+  const upgradeFormEl = document.getElementById('upgradeForm');
+  if (upgradeFormEl) {
+    upgradeFormEl.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = upgradeFormEl.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      try {
+        const action = upgradeFormEl.action;
+        const body = new URLSearchParams(new FormData(upgradeFormEl));
+        const res = await fetch(action, { method: 'POST', body });
+        const data = await res.json();
+        if (data && data.success) {
+          if (typeof showToast === 'function') showToast(data.message || 'Subscription updated', 'success');
+          closeUpgradeModal();
+          setTimeout(() => location.reload(), 800);
+        } else {
+          if (typeof showToast === 'function') showToast('Error: ' + (data.error || 'Upgrade failed'), 'error');
+        }
+      } catch (err) {
+        if (typeof showToast === 'function') showToast('Error: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+
+  // Submit renew form via AJAX to show popup instead of raw JSON response
+  const renewFormEl = document.getElementById('renewForm');
+  if (renewFormEl) {
+    renewFormEl.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btns = renewFormEl.querySelectorAll('button[type="submit"]');
+      btns.forEach(b => b.disabled = true);
+      try {
+        const action = renewFormEl.action;
+        const body = new URLSearchParams(new FormData(renewFormEl));
+        const res = await fetch(action, { method: 'POST', body });
+        const data = await res.json();
+        if (data && data.success) {
+          if (typeof showToast === 'function') showToast(data.message || 'Subscription renewed', 'success');
+          closeRenewModal();
+          setTimeout(() => location.reload(), 800);
+        } else {
+          if (typeof showToast === 'function') showToast('Error: ' + (data.error || 'Renew failed'), 'error');
+        }
+      } catch (err) {
+        if (typeof showToast === 'function') showToast('Error: ' + err.message, 'error');
+      } finally {
+        btns.forEach(b => b.disabled = false);
+      }
+    });
+  }
+</script>
+
+<script>
+  function clearSubscriptionFilters() {
+    const sel = document.getElementById('subscriptionFilter');
+    const search = document.getElementById('searchSchools');
+    if (sel) sel.value = '';
+    if (search) search.value = '';
+    window.location.href = '/admin/subscriptions';
+  }
+</script>
+
+<%- include('partials/footer') %>

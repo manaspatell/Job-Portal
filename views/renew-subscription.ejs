@@ -1,0 +1,1185 @@
+<%- include('partials/header') %>
+
+<main class="pricing-layout">
+  <!-- Authentication Modal (shown first) -->
+  <div id="authModal" class="auth-modal" style="display: flex;">
+    <div class="auth-modal-overlay"></div>
+    <div class="auth-modal-content">
+      <div class="auth-card">
+        <h2 class="auth-title">🔒 Verify Your Identity</h2>
+        <p class="auth-subtitle">Please login to renew your subscription</p>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-error">
+            <%= error %>
+          </div>
+        <% } %>
+
+        <form id="authForm" class="auth-form">
+          <div class="form-group">
+            <label for="email" class="form-label">School Email</label>
+            <input 
+              id="email" 
+              name="email" 
+              type="email" 
+              class="form-control" 
+              placeholder="your-school@example.com"
+              required
+              value="<%= typeof email !== 'undefined' ? email : '' %>"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input 
+              id="password" 
+              name="password" 
+              type="password" 
+              class="form-control" 
+              placeholder="Enter your password"
+              required
+            >
+          </div>
+
+          <button type="submit" class="btn-auth">
+            <span>Verify Identity</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <a href="/school/login" class="link-back">← Back to Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing Section (hidden until authenticated) -->
+  <div id="pricingSection" class="pricing-container" style="display: none;">
+    <div class="pricing-header-content">
+      <div class="verified-badge">
+        <span class="verified-icon">✓</span>
+        <span class="verified-text">Verified: <span id="schoolNameDisplay"></span></span>
+      </div>
+      <h1 class="pricing-title">Renew Your Subscription</h1>
+      <p class="pricing-subtitle">Choose your plan and continue hiring great teachers</p>
+    </div>
+
+    <div class="pricing-cards">
+      <% 
+        const plans = [
+          { id: 'silver', name: 'Silver', featured: false },
+          { id: 'gold', name: 'Gold', featured: true },
+          { id: 'diamond', name: 'Diamond', featured: false }
+        ];
+        
+        plans.forEach(plan => {
+      %>
+      <!-- <%= plan.name %> Plan -->
+      <div class="pricing-card <%= plan.id %>-plan <%= plan.featured ? 'featured' : '' %>" data-plan="<%= plan.name %>">
+        <% if (plan.featured) { %>
+          <div class="plan-badge">Most Popular</div>
+        <% } %>
+
+        <div class="plan-header">
+          <h3 class="plan-name"><%= plan.name %></h3>
+          <p class="plan-description" id="<%= plan.id %>-description">Professional plan</p>
+        </div>
+
+        <div class="plan-price">
+          <span class="original-price" id="<%= plan.id %>-base-price" style="display: none;"></span>
+          <span class="price-amount" id="<%= plan.id %>-price">₹0</span>
+          <span class="price-period">/<span id="<%= plan.id %>-duration">month</span></span>
+        </div>
+
+        <div class="discount-banner" id="<%= plan.id %>-discount" style="display: none;">
+          Save <span class="discount-amount"></span>
+        </div>
+
+        <p class="plan-tagline">
+          <% if (plan.id === 'silver') { %>
+            Get started with basic features
+          <% } else if (plan.id === 'gold') { %>
+            Everything you need to scale
+          <% } else { %>
+            Maximum power and flexibility
+          <% } %>
+        </p>
+
+        <button class="plan-button <%= plan.featured ? 'featured-button' : '' %>" onclick="selectPlan('<%= plan.name %>', '<%= plan.id %>')">
+          Renew Now
+        </button>
+
+        <div class="plan-features" id="<%= plan.id %>-features">
+          <!-- Features will be loaded dynamically -->
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <!-- Previous Subscription Info -->
+    <div class="info-section">
+      <h3 class="info-title">📊 Your Previous Subscription</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Previous Plan:</span>
+          <span class="info-value" id="previousPlan">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Expired On:</span>
+          <span class="info-value" id="expiryDate">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status:</span>
+          <span class="info-value"><span class="status-badge expired" id="previousStatus">Expired</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="payment-modal" style="display: none;">
+    <div class="payment-modal-overlay" onclick="closePaymentModal()"></div>
+    <div class="payment-modal-content">
+      <button class="modal-close-btn" onclick="closePaymentModal()">✕</button>
+      
+      <div class="payment-header">
+        <h2>Complete Your Payment</h2>
+        <p>Scan QR code and upload payment proof</p>
+      </div>
+
+      <div class="payment-body">
+        <div class="payment-summary">
+          <div class="summary-item">
+            <span>Selected Plan:</span>
+            <strong id="selectedPlanName">Gold</strong>
+          </div>
+          <div class="summary-item">
+            <span>Amount:</span>
+            <strong id="selectedPlanPrice">₹25,000</strong>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <h3>Scan to Pay</h3>
+          <div class="qr-box">
+              <img src="/uploads/bank/QR.jpeg" alt="Bank QR Code" class="qr-image"
+                onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect width=%22200%22 height=%22200%22 fill=%22%23f0f0f0%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>QR Code</text></svg>'">
+          </div>
+          <!-- Payment method icons removed as requested -->
+        </div>
+
+        <form id="paymentForm" class="payment-form" enctype="multipart/form-data">
+          <input type="hidden" id="schoolId" name="schoolId">
+          <input type="hidden" id="schoolEmail" name="schoolEmail">
+          <input type="hidden" id="selectedPlan" name="plan">
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Contact Number</label>
+            <input 
+              id="phone" 
+              name="phone" 
+              type="tel" 
+              class="form-control" 
+              placeholder="+91 XXXXX XXXXX"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="paymentScreenshot" class="form-label">Payment Screenshot</label>
+            <div class="file-upload">
+              <input 
+                id="paymentScreenshot" 
+                name="paymentScreenshot" 
+                type="file" 
+                class="file-input" 
+                accept="image/*"
+                required
+              >
+              <div class="file-upload-area">
+                <span class="upload-icon">📸</span>
+                <span class="upload-text">Click to upload</span>
+                <span class="upload-hint">PNG, JPG up to 5MB</span>
+              </div>
+            </div>
+            <div class="file-name" id="fileName"></div>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <span>Submit Payment Proof</span>
+          </button>
+
+          <p class="form-note">
+            ℹ️ Your payment will be verified and your subscription activated within 2-4 hours.<br>
+            📱 Once verified, you will receive a confirmation and further instructions via WhatsApp. Thank you for your patience!
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="pricing-footer">
+    <p class="footer-text">© 2026 Teacher Recruitment Management System. All rights reserved.</p>
+  </div>
+</main>
+
+<style>
+  /* Pricing Layout (same as subscription-pricing) */
+  .pricing-layout {
+    background: #fafbfc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Authentication Modal */
+  .auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .auth-modal-content {
+    position: relative;
+    z-index: 1001;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 20px;
+  }
+
+  .auth-card {
+    background: white;
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+
+  .auth-title {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  .auth-subtitle {
+    margin: 0 0 32px;
+    font-size: 14px;
+    color: #7f8c8d;
+    text-align: center;
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .alert-error {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .form-control {
+    padding: 12px 16px;
+    border: 2px solid #e8ecf1;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+
+  .btn-auth {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+  }
+
+  .btn-auth:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .auth-footer {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .link-back {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .link-back:hover {
+    color: #0066cc;
+  }
+
+  /* Pricing Container */
+  .pricing-container {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    width: 100%;
+  }
+
+  .pricing-header-content {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #d4edda;
+    color: #155724;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .verified-icon {
+    font-size: 16px;
+  }
+
+  .pricing-title {
+    margin: 0 0 16px;
+    font-size: 48px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+  }
+
+  .pricing-subtitle {
+    margin: 0;
+    font-size: 18px;
+    color: #5a6c7d;
+    font-weight: 500;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Pricing Cards */
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .pricing-card {
+    background: white;
+    border: 1px solid #e8ecf1;
+    border-radius: 16px;
+    padding: 40px 32px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-card:hover {
+    border-color: #d0d8e0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .pricing-card.featured {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    transform: scale(1.08);
+    box-shadow: 0 12px 40px rgba(0, 102, 204, 0.2);
+  }
+
+  .pricing-card.featured:hover {
+    box-shadow: 0 16px 48px rgba(0, 102, 204, 0.3);
+  }
+
+  .pricing-card.featured .plan-name,
+  .pricing-card.featured .plan-description,
+  .pricing-card.featured .price-amount,
+  .pricing-card.featured .price-period,
+  .pricing-card.featured .plan-tagline,
+  .pricing-card.featured .feature {
+    color: white;
+  }
+
+  .pricing-card.featured .plan-description,
+  .pricing-card.featured .plan-tagline {
+    opacity: 0.9;
+  }
+
+  .pricing-card.featured .feature {
+    opacity: 0.95;
+  }
+
+  .pricing-card.featured .check-icon {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: white;
+    color: #0066cc;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .plan-header {
+    margin-bottom: 24px;
+  }
+
+  .plan-name {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .plan-description {
+    margin: 0;
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .plan-price {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .original-price {
+    font-size: 16px;
+    color: #7f8c8d;
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+
+  .price-amount {
+    font-size: 42px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .price-period {
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .discount-banner {
+    background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+    color: #c33;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    border-left: 4px solid #c33;
+  }
+
+  .plan-tagline {
+    margin: 0 0 28px;
+    font-size: 14px;
+    color: #5a6c7d;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .plan-button {
+    padding: 12px 20px;
+    background: white;
+    color: #2c3e50;
+    border: 2px solid #e8ecf1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .plan-button:hover {
+    background: #f8fbff;
+    border-color: #0066cc;
+    color: #0066cc;
+    transform: translateY(-2px);
+  }
+
+  .featured-button {
+    background: white;
+    color: #0066cc;
+    border: 2px solid white;
+  }
+
+  .featured-button:hover {
+    background: #f0f7ff;
+    color: #0052a3;
+  }
+
+  .plan-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #5a6c7d;
+    font-weight: 500;
+  }
+
+  .check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #f0f7ff;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #0066cc;
+    font-weight: 700;
+  }
+
+  /* Info Section */
+  .info-section {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 40px;
+  }
+
+  .info-title {
+    margin: 0 0 24px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    background: #fafbfc;
+    border-radius: 12px;
+    border: 1px solid #e8ecf1;
+  }
+
+  .info-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .status-badge.expired {
+    background: #fee;
+    color: #c33;
+  }
+
+  /* Payment Modal */
+  .payment-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .payment-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .payment-modal-content {
+    position: relative;
+    z-index: 2001;
+    background: white;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #f8f9fa;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close-btn:hover {
+    background: #e8ecf1;
+  }
+
+  .payment-header {
+    padding: 40px 40px 24px;
+    border-bottom: 1px solid #e8ecf1;
+  }
+
+  .payment-header h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .payment-header p {
+    margin: 0;
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+
+  .payment-body {
+    padding: 32px 40px 40px;
+  }
+
+  .payment-summary {
+    background: #fafbfc;
+    border: 1px solid #e8ecf1;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .summary-item span {
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+
+  .summary-item strong {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  .qr-section {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .qr-section h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .qr-box {
+    background: #fafbfc;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .qr-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+  }
+
+  .payment-methods {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .method-icon {
+    width: 40px;
+    height: 40px;
+    background: #f8f9fa;
+    border: 1px solid #e8ecf1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .file-upload {
+    position: relative;
+  }
+
+  .file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .file-upload-area {
+    border: 2px dashed #d0d8e0;
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .file-upload-area:hover {
+    border-color: #0066cc;
+    background: #f8fbff;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .upload-text {
+    display: block;
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .upload-hint {
+    display: block;
+    font-size: 12px;
+    color: #7f8c8d;
+  }
+
+  .file-name {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #0066cc;
+    font-weight: 600;
+  }
+
+  .btn-submit {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+  }
+
+  .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-note {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Footer */
+  .pricing-footer {
+    background: white;
+    border-top: 1px solid #e8ecf1;
+    padding: 32px 40px;
+    text-align: center;
+  }
+
+  .footer-text {
+    margin: 0;
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .pricing-cards {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .pricing-card.featured {
+      transform: scale(1);
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .pricing-container {
+      padding: 40px 20px;
+    }
+
+    .pricing-title {
+      font-size: 32px;
+    }
+
+    .pricing-subtitle {
+      font-size: 16px;
+    }
+
+    .auth-card {
+      padding: 32px 24px;
+    }
+
+    .payment-modal-content {
+      margin: 0 16px;
+    }
+
+    .payment-header,
+    .payment-body {
+      padding: 24px;
+    }
+  }
+</style>
+
+<script>
+  let verifiedSchool = null;
+  let pricingData = {};
+
+  // Load pricing data
+  async function loadPricing() {
+    try {
+      const response = await fetch('/api/pricing');
+      if (response.ok) {
+        pricingData = await response.json();
+        updatePricingDisplay();
+      }
+    } catch (error) {
+      console.error('Error loading pricing:', error);
+    }
+  }
+
+  function updatePricingDisplay() {
+    ['silver', 'gold', 'diamond'].forEach(planId => {
+      const planData = pricingData[planId];
+      if (planData) {
+        const finalPrice = planData.currentPrice || planData.basePrice || 0;
+        const basePrice = planData.basePrice || 0;
+        const discount = planData.discount || 0;
+        const discountType = planData.discountType || 'percentage';
+
+        // Update price
+        document.getElementById(`${planId}-price`).textContent = 
+          '₹' + finalPrice.toLocaleString('en-IN');
+
+        // Update duration
+        document.getElementById(`${planId}-duration`).textContent = planData.duration || 'month';
+
+        // Update description
+        document.getElementById(`${planId}-description`).textContent = 
+          planData.description || 'Professional plan';
+
+        // Show discount if applicable
+        if (discount > 0) {
+          const basePriceEl = document.getElementById(`${planId}-base-price`);
+          basePriceEl.textContent = '₹' + basePrice.toLocaleString('en-IN');
+          basePriceEl.style.display = 'inline';
+
+          const discountEl = document.getElementById(`${planId}-discount`);
+          const savings = discountType === 'percentage' ? 
+            Math.round(basePrice * discount / 100) : discount;
+          discountEl.querySelector('.discount-amount').textContent = 
+            '₹' + savings.toLocaleString('en-IN') + ' | ' + discount + (discountType === 'percentage' ? '%' : '') + ' OFF';
+          discountEl.style.display = 'block';
+        }
+
+        // Update features
+        const featuresContainer = document.getElementById(`${planId}-features`);
+        if (planData.features && planData.features.length > 0) {
+          featuresContainer.innerHTML = planData.features.map(feature => `
+            <div class="feature">
+              <span class="check-icon">✓</span>
+              <span>${feature}</span>
+            </div>
+          `).join('');
+        }
+      }
+    });
+  }
+
+  // Handle authentication
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const authBtn = e.target.querySelector('.btn-auth');
+    authBtn.disabled = true;
+    authBtn.innerHTML = '<span>Verifying...</span>';
+
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
+    try {
+      const response = await fetch('/api/verify-school', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        verifiedSchool = result.school;
+
+        // Prefer lastSubscription for previous plan info
+        let prevPlan = '—';
+        let prevExpiry = '—';
+        let prevStatus = '—';
+        if (result.school.lastSubscription && result.school.lastSubscription.tier && result.school.lastSubscription.tier !== 'none') {
+          prevPlan = result.school.lastSubscription.tier.toUpperCase();
+          prevExpiry = result.school.lastSubscription.endDate ? new Date(result.school.lastSubscription.endDate).toLocaleDateString() : 'N/A';
+          prevStatus = result.school.lastSubscription.status ? result.school.lastSubscription.status.charAt(0).toUpperCase() + result.school.lastSubscription.status.slice(1) : 'Expired';
+        } else if (result.school.subscription && result.school.subscription.tier && result.school.subscription.tier !== 'none') {
+          prevPlan = result.school.subscription.tier.toUpperCase();
+          prevExpiry = result.school.subscription.endDate ? new Date(result.school.subscription.endDate).toLocaleDateString() : 'N/A';
+          prevStatus = result.school.subscription.status ? result.school.subscription.status.charAt(0).toUpperCase() + result.school.subscription.status.slice(1) : 'Expired';
+        }
+        document.getElementById('schoolNameDisplay').textContent = result.school.name;
+        document.getElementById('previousPlan').textContent = prevPlan;
+        document.getElementById('expiryDate').textContent = prevExpiry;
+        document.getElementById('previousStatus').textContent = prevStatus;
+
+        // Hide auth modal and show pricing section
+        document.getElementById('authModal').style.display = 'none';
+        document.getElementById('pricingSection').style.display = 'block';
+
+        // Set hidden fields for later
+        document.getElementById('schoolId').value = result.school.id;
+        document.getElementById('schoolEmail').value = result.school.email;
+      } else {
+        alert(result.message || 'Authentication failed. Please check your credentials.');
+        authBtn.disabled = false;
+        authBtn.innerHTML = '<span>Verify Identity</span><span class="btn-arrow">→</span>';
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Error verifying credentials. Please try again.');
+      authBtn.disabled = false;
+      authBtn.innerHTML = '<span>Verify Identity</span><span class="btn-arrow">→</span>';
+    }
+  });
+
+  // Handle plan selection
+  function selectPlan(planName, planId) {
+    if (!verifiedSchool) {
+      alert('Please authenticate first');
+      return;
+    }
+
+    const planData = pricingData[planId];
+    const finalPrice = planData?.currentPrice || planData?.basePrice || 0;
+
+    // Update payment modal
+    document.getElementById('selectedPlanName').textContent = planName;
+    document.getElementById('selectedPlanPrice').textContent = '₹' + finalPrice.toLocaleString('en-IN');
+    document.getElementById('selectedPlan').value = planName;
+
+    // Show payment modal
+    document.getElementById('paymentModal').style.display = 'flex';
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+  }
+
+  // Handle file upload display
+  document.getElementById('paymentScreenshot').addEventListener('change', (e) => {
+    const fileName = e.target.files[0]?.name || '';
+    document.getElementById('fileName').textContent = fileName ? `Selected: ${fileName}` : '';
+  });
+
+  // Handle payment form submission
+  document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = e.target.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Submitting...</span>';
+
+    const formData = new FormData(e.target);
+
+    try {
+      const response = await fetch('/api/submit-renewal', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Renewal payment submitted successfully! Admin will verify and activate your subscription within 2-4 hours.');
+        window.location.href = '/school/login';
+      } else {
+        alert(result.message || 'Error submitting renewal payment.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Submit Payment Proof</span>';
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Error submitting renewal. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Submit Payment Proof</span>';
+    }
+  });
+
+  // Load pricing on page load
+  loadPricing();
+
+  // Pre-fill email if provided in URL
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    if (email) {
+      document.getElementById('email').value = email;
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

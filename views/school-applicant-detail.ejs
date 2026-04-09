@@ -1,0 +1,226 @@
+<%- include('partials/header') %>
+
+<main class="applicant-detail-layout">
+  <!-- Sidebar -->
+  <aside class="detail-sidebar">
+    <div class="sidebar-brand">TRMS</div>
+    <nav class="sidebar-nav">
+      <a href="/school/dashboard" class="nav-item" title="Dashboard">
+        <span class="nav-icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/school/applicants" class="nav-item active" title="Applicants">
+        <span class="nav-icon">👥</span>
+        <span>Applicants</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <section class="detail-main">
+    <!-- Top Header -->
+    <header class="detail-topbar">
+      <div class="topbar-left">
+        <a href="/school/applicants" class="back-btn" title="Back to Applicants">← Back</a>
+        <div class="topbar-title">
+          <h1><%= applicant.name %></h1>
+          <p class="topbar-subtitle"><%= applicant.email %></p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="status-badge status-<%= applicant.status %>"><%= applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1) %></span>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="detail-container">
+      <!-- Left Column -->
+      <div class="detail-left">
+        <!-- Profile Card -->
+        <div class="detail-card profile-card">
+          <div class="card-header">
+            <h2>👤 Profile</h2>
+          </div>
+          <div class="card-body">
+            <div class="profile-section">
+              <div class="info-group">
+                <label class="info-label">Email</label>
+                <p class="info-value">
+                  <a href="mailto:<%= applicant.email %>"><%= applicant.email %></a>
+                </p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Phone</label>
+                <p class="info-value">
+                  <a href="tel:<%= applicant.phone %>"><%= applicant.phone %></a>
+                </p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Gender</label>
+                <p class="info-value"><%= applicant.gender || '—' %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2>📍 Location</h2>
+          </div>
+          <div class="card-body">
+            <div class="location-info">
+              <div class="info-group">
+                <label class="info-label">Current</label>
+                <p class="info-value"><%= applicant.city %>, <strong><%= applicant.state %></strong></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Preferred</label>
+                <p class="info-value"><strong><%= applicant.preferredLocation || '—' %></strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Education Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2>🎓 Education</h2>
+          </div>
+          <div class="card-body">
+            <div class="education-info">
+              <div class="info-group">
+                <label class="info-label">Qualification</label>
+                <p class="info-value"><%= applicant.highestQualification || '—' %></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">College</label>
+                <p class="info-value"><%= applicant.collegeName || '—' %></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Tier</label>
+                <span class="tier-badge tier-<%= applicant.collegeTier?.toLowerCase() %>"><%= applicant.collegeTier || '—' %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills/Subjects Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2>📚 Subjects/Skills</h2>
+          </div>
+          <div class="card-body">
+            <div class="skills-container">
+              <% if (applicant.skills) { %>
+                <% applicant.skills.split(',').map(s => s.trim()).forEach(skill => { %>
+                  <span class="skill-tag"><%= skill %></span>
+                <% }) %>
+              <% } else { %>
+                <p class="text-muted">No subjects/skills added</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary Card -->
+        <div class="detail-card salary-card">
+          <div class="card-header">
+            <h2>💰 Salary Expectation</h2>
+          </div>
+          <div class="card-body">
+            <div class="salary-display">
+              <span class="currency">₹</span>
+              <span class="amount"><%= applicant.expectedSalary?.toLocaleString('en-IN') || '0' %></span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="detail-right">
+        <!-- Status & Rating Card -->
+        <div class="detail-card status-card">
+          <div class="card-header">
+            <h2>⭐ Status & Rating</h2>
+          </div>
+          <div class="card-body">
+            <div class="status-section">
+              <label class="section-label">Application Status</label>
+              <span class="status-badge status-<%= applicant.status %>"><%= applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1) %></span>
+            </div>
+            <div class="rating-section">
+              <label class="section-label">Rating</label>
+              <div class="rating-container">
+                <% for (let i = 1; i <= 5; i++) { %>
+                  <span class="star <%= applicant.rating >= i ? 'active' : '' %>">★</span>
+                <% } %>
+                <span class="rating-text">(<%= applicant.rating || 0 %>/5)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2>🏷️ Tags</h2>
+          </div>
+          <div class="card-body">
+            <div class="tags-section">
+              <% if (applicant.tags && applicant.tags.length > 0) { %>
+                <div class="tags-list">
+                  <% applicant.tags.forEach(tag => { %>
+                    <span class="tag-pill"><%= tag %></span>
+                  <% }) %>
+                </div>
+              <% } else { %>
+                <p class="text-muted">No tags added</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- CV Card -->
+        <div class="detail-card cv-card">
+          <div class="card-header">
+            <h2>📄 Resume</h2>
+          </div>
+          <div class="card-body">
+            <% if (applicant.cvPath) { %>
+              <div class="cv-available">
+                <div class="cv-icon">📄</div>
+                <p class="cv-status">Resume uploaded</p>
+                <a href="/<%= applicant.cvPath %>" target="_blank" class="btn btn-primary btn-sm" download>
+                  ⬇️ Download CV
+                </a>
+              </div>
+            <% } else { %>
+              <div class="cv-empty">
+                <p class="text-muted">No resume uploaded</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="detail-card metadata-card">
+          <div class="card-header">
+            <h2>📋 Details</h2>
+          </div>
+          <div class="card-body">
+            <div class="metadata-item">
+              <span class="meta-label">Applied:</span>
+              <span class="meta-value"><%= new Date(applicant.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+            </div>
+            <div class="metadata-item">
+              <span class="meta-label">ID:</span>
+              <span class="meta-value mono"><%= applicant._id %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

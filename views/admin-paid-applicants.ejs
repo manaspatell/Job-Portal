@@ -1,0 +1,146 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+
+<main class="admin-theme">
+  <div class="ad-shell">
+    <%- include('partials/admin-sidebar', { activePage: 'paid' }) %>
+
+    <section class="ad-main">
+      <header class="ad-topbar">
+        <div>
+          <div class="ad-page-title">Paid Applicants - Payment Verification</div>
+          <div class="ad-page-subtitle">Verify or reject payment proofs for paid applicants</div>
+        </div>
+        <div class="ad-topbar-actions">
+          <a href="/admin/dashboard" class="ad-btn">Back to Dashboard</a>
+          <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+        </div>
+      </header>
+
+      <div class="ad-card">
+        <div class="ad-card-head">
+          <div class="ad-card-title">Filters</div>
+          <div class="ad-card-sub">Search and filter by payment status</div>
+        </div>
+        <div style="padding: 12px 14px;">
+          <form class="ad-form-row" method="GET" action="/admin/paid-applicants">
+            <input type="text" name="search" placeholder="Search name/email..." value="<%= typeof search !== 'undefined' ? search : '' %>" class="ad-input" style="min-width: 240px;">
+            <select name="paymentStatus" class="ad-select">
+              <option value="">All Statuses</option>
+              <option value="pending" <%= paymentStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="verified" <%= paymentStatus === 'verified' ? 'selected' : '' %>>Verified</option>
+              <option value="rejected" <%= paymentStatus === 'rejected' ? 'selected' : '' %>>Rejected</option>
+            </select>
+            <button type="submit" class="ad-btn ad-btn-primary">Filter</button>
+            <button type="button" class="ad-btn" onclick="clearPaidFilters()">Clear</button>
+          </form>
+        </div>
+      </div>
+
+      <% if (applicants && applicants.length > 0) { %>
+      <div class="ad-card">
+        <div class="ad-card-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <div class="ad-card-title">Paid Applicants</div>
+            <div class="ad-card-sub">Total: <%= applicants.length %></div>
+          </div>
+        </div>
+        <div class="ad-table-wrap">
+          <table class="ad-table" style="min-width: 1100px;">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Payment Status</th>
+                <th>Rating</th>
+                <th>Proof of Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% applicants.forEach(app => { %>
+                <tr class="ad-row">
+                  <td><%= app.name %></td>
+                  <td><%= app.email %></td>
+                  <td><span class="ad-pill ad-pill-<%= app.status || 'pending' %>"><%= app.status || 'pending' %></span></td>
+                  <td><span class="ad-pill ad-pill-<%= app.paymentStatus || 'pending' %>"><%= app.paymentStatus || 'pending' %></span></td>
+                  <td>
+                    <div class="rating-stars">
+                      <% for (let i = 1; i <= 5; i++) { %>
+                        <span class="star <%= app.rating >= i ? 'filled' : '' %>"><i class="fa-solid fa-star"></i></span>
+                      <% } %>
+                      <span class="rating-value"><%= app.rating || 0 %>/5</span>
+                    </div>
+                  </td>
+                  <td>
+                    <% if (app.paymentProof) { %>
+                      <a href="/uploads/payment-proofs/<%= app.paymentProof %>" target="_blank" class="ad-btn" style="border-radius: 10px;">View Proof</a>
+                    <% } else { %>
+                      <span style="color:#64748b;font-size:12px;">No proof</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (app.paymentStatus === 'pending') { %>
+                      <form method="POST" action="/admin/paid-applicants/<%= app._id %>/verify" style="display:inline;">
+                        <button type="submit" class="ad-btn ad-btn-primary">Verify</button>
+                      </form>
+                      <form method="POST" action="/admin/paid-applicants/<%= app._id %>/reject" style="display:inline;margin-left:6px;">
+                        <button type="submit" class="ad-btn" style="border-color:#ef4444;color:#991b1b;">Reject</button>
+                      </form>
+                    <% } else if (app.paymentStatus === 'verified') { %>
+                      <span class="ad-pill ad-pill-verified">Verified</span>
+                    <% } else if (app.paymentStatus === 'rejected') { %>
+                      <span class="ad-pill ad-pill-rejected">Rejected</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="padding: 14px; display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+          <% if (typeof currentPage !== 'undefined' && totalPages > 1) { %>
+            <% for (let p = 1; p <= totalPages; p++) { %>
+              <a href="?page=<%= p %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= paymentStatus ? '&paymentStatus=' + paymentStatus : '' %>"
+                 class="ad-btn <%= currentPage === p ? 'ad-btn-primary' : '' %>"><%= p %></a>
+            <% } %>
+          <% } %>
+        </div>
+      </div>
+      <% } else { %>
+        <div class="ad-card">
+          <div style="padding: 28px; text-align:center;">
+            <div style="font-size: 46px; margin-bottom: 10px;"><i class="fa-solid fa-file-invoice"></i></div>
+            <div class="ad-card-title" style="font-size: 16px;">No paid applicants found</div>
+            <div class="ad-card-sub" style="margin-top:6px;">All payments are verified or no paid applicants available.</div>
+          </div>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</main>
+
+<style>
+  /* keep existing small helpers */
+  .rating-stars { display: flex; align-items: center; gap: 2px; }
+  .star { color: #e2e8f0; font-size: 16px; }
+  .star.filled { color: #fbbf24; }
+  .rating-value { margin-left: 6px; font-size: 12px; color: #475569; }
+</style>
+
+<script>
+  function clearPaidFilters() {
+    const form = document.querySelector('form.ad-form-row');
+    if (!form) {
+      window.location.href = '/admin/paid-applicants';
+      return;
+    }
+    // reset inputs then submit
+    form.reset();
+    form.submit();
+  }
+</script>
+
+<%- include('partials/footer') %>

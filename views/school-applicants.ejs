@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+
+<main class="container dashboard-main">
+  <section class="dashboard-section">
+    <div class="dashboard-header">
+      <div class="header-left">
+        <div class="header-kicker">School Portal</div>
+        <h2>Applicants for <%= location %></h2>
+        <p class="subtitle">Only candidates matching your assigned location.</p>
+      </div>
+      <div class="header-actions">
+        <a href="/school/logout" class="btn btn-danger">Logout</a>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error">Error loading applicants.</div>
+    <% } %>
+
+    <% if (applicants && applicants.length) { %>
+      <div class="table-section">
+        <div class="table-header">
+          <h3>Applicants</h3>
+          <p class="table-info">Showing <%= applicants.length %> candidates</p>
+        </div>
+        <div class="table-container">
+          <table class="applicants-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Contact</th>
+                <th>Qualification</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% applicants.forEach(applicant => { %>
+                <tr>
+                  <td><strong><%= applicant.name %></strong></td>
+                  <td><%= applicant.gender || '—' %></td>
+                  <td>
+                    <div><a href="mailto:<%= applicant.email %>"><%= applicant.email %></a></div>
+                    <div><a href="tel:<%= applicant.phone %>"><%= applicant.phone %></a></div>
+                  </td>
+                  <td><%= applicant.highestQualification || 'N/A' %></td>
+                  <td><%= applicant.status || 'pending' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <% if (totalPages && totalPages > 1) { %>
+          <div class="pagination">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="/school/applicants?page=<%= i %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="no-applicants">
+        <h3>No applicants for your location yet</h3>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

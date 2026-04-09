@@ -1,0 +1,184 @@
+<%- include('partials/header') %>
+
+<main class="pending-layout">
+  <div class="pending-container">
+    <div class="pending-card">
+      <div class="pending-icon">⏳</div>
+      <h1 class="pending-title">Payment Verification Pending</h1>
+      <p class="pending-subtitle">We received your payment proof. Our team typically verifies within 1–2 days. We'll update you on WhatsApp once it's approved.</p>
+
+      <div class="pending-details">
+        <div class="detail-row">
+          <span class="detail-label">Selected Plan</span>
+          <span class="detail-value" id="planName">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="status-badge">Pending Review</span>
+        </div>
+      </div>
+
+
+      <p class="pending-note">Need help? Contact support on WhatsApp and share your payment reference.</p>
+    </div>
+  </div>
+</main>
+
+<style>
+  .pending-layout {
+    background: #fafbfc;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .pending-container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .pending-card {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8ecf1;
+    text-align: center;
+  }
+
+  .pending-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .pending-title {
+    margin: 0 0 12px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .pending-subtitle {
+    margin: 0 0 24px;
+    font-size: 15px;
+    color: #5a6c7d;
+    line-height: 1.6;
+  }
+
+  .pending-details {
+    background: #f8fbff;
+    border: 1px solid #e0eaff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .detail-row + .detail-row {
+    border-top: 1px solid #d0d8e0;
+    margin-top: 8px;
+  }
+
+  .detail-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .detail-value {
+    font-size: 15px;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  .status-badge {
+    background: #fff5e6;
+    color: #b36b00;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pending-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    box-shadow: 0 6px 18px rgba(0, 102, 204, 0.25);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #0066cc;
+    border: 2px solid #0066cc;
+  }
+
+  .btn-secondary:hover {
+    background: #0066cc;
+    color: white;
+  }
+
+  .pending-note {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #5a6c7d;
+  }
+
+  @media (max-width: 640px) {
+    .pending-card {
+      padding: 28px 20px;
+    }
+
+    .pending-title {
+      font-size: 22px;
+    }
+
+    .pending-subtitle {
+      font-size: 14px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan') || 'Selected Plan';
+    document.getElementById('planName').textContent = plan;
+  });
+</script>
+
+<%- include('partials/footer') %>

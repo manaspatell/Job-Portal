@@ -1,0 +1,1957 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+<% /* Infinite scroll setup removed */ %>
+
+<main class="admin-theme">
+    <% if (!showList) { %>
+    <header class="admin-header-dark">
+      <div class="admin-header-content minimal">
+        <span class="admin-welcome-text">Hello, welcome to admin dashboard</span>
+      </div>
+    </header>
+  <style>
+    .admin-header-dark {
+      background: #1a2233;
+      color: #fff;
+      padding: 10px 0 8px 0;
+      text-align: left;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .admin-header-content.minimal {
+      max-width: 900px;
+      margin: 0 auto;
+      padding-left: 18px;
+      display: flex;
+      align-items: center;
+    }
+    .admin-welcome-text {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #e0e7ff;
+      letter-spacing: 0.2px;
+      background: none;
+      padding: 0;
+    }
+    @media (max-width: 600px) {
+      .admin-header-dark {
+        padding: 8px 0 6px 0;
+      }
+      .admin-header-content.minimal {
+        padding-left: 8px;
+      }
+      .admin-welcome-text {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+    <% } %>
+  <section class="dashboard-section">
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error">
+        <strong>Error:</strong> <%= error %>
+      </div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success">
+        <strong>Success:</strong> <%= success %>
+      </div>
+    <% } %>
+
+    <% if (!showList) { %>
+    <!-- Theme Layout: Dark sidebar + table + detail panel (keeps your data/actions) -->
+    <div class="ad-shell">
+      <%- include('partials/admin-sidebar', { activePage: 'dashboard' }) %>
+
+      <section class="ad-main">
+        <header class="ad-topbar">
+          <div class="ad-topbar-left">
+            <div class="ad-page-title">Dashboard</div>
+            <div class="ad-page-subtitle">Recruitment overview, pipeline, and recent activity</div>
+          </div>
+
+          <div class="ad-topbar-actions">
+              <div class="ad-search" style="display:flex;align-items:center;gap:8px;">
+                <span class="ad-search-ico"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input id="globalSearch" type="text" placeholder="Search applicants..." />
+                <button type="button" id="globalSearchClear" class="ad-btn" title="Clear search" onclick="clearGlobalSearch()" style="padding:6px;border-radius:8px;"> <i class="fa-solid fa-xmark"></i> </button>
+              </div>
+            
+            <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+          </div>
+        </header>
+
+        <div class="ad-kpis">
+          <div class="ad-kpi">
+            <div class="ad-kpi-label">Total</div>
+            <div class="ad-kpi-value"><%= (stats?.total || 0).toLocaleString() %></div>
+          </div>
+          <div class="ad-kpi">
+            <div class="ad-kpi-label">Pending</div>
+            <div class="ad-kpi-value"><%= (stats?.byStatus?.pending || 0).toLocaleString() %></div>
+          </div>
+          <div class="ad-kpi">
+            <div class="ad-kpi-label">Shortlisted</div>
+            <div class="ad-kpi-value"><%= (stats?.byStatus?.shortlisted || 0).toLocaleString() %></div>
+          </div>
+          <div class="ad-kpi">
+            <div class="ad-kpi-label">Approved</div>
+            <div class="ad-kpi-value"><%= (stats?.byStatus?.approved || 0).toLocaleString() %></div>
+          </div>
+          <div class="ad-kpi">
+            <div class="ad-kpi-label">Avg Salary</div>
+            <div class="ad-kpi-value">₹<%= Math.round(stats?.avgSalary || 0).toLocaleString() %></div>
+          </div>
+        </div>
+
+        <div class="ad-grid">
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div class="ad-card-title">Applicant Trends</div>
+            </div>
+            <div class="ad-chart">
+              <canvas id="trendsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div class="ad-card-title">Pipeline</div>
+            </div>
+            <div class="ad-chart">
+              <div class="pipeline-wrap" style="display:flex;gap:14px;align-items:stretch;">
+                <div style="flex:1;min-width:260px;">
+                  <canvas id="pipelineChart" style="width:100%;height:220px;"></canvas>
+                </div>
+                <div class="chart-details" style="width:220px;background:#fff;border:1px solid #eef1f7;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+                  <div style="font-weight:800;color:#1f2a44;margin-bottom:6px;">Pipeline Details</div>
+                  <div class="detail-row" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:12px;height:12px;background:#1f6fd8;border-radius:3px;display:inline-block;"></span><span>Approved</span></div>
+                    <div class="detail-approved" style="font-weight:700;color:#1f2a44;"><%= (stats && stats.byStatus && stats.byStatus.approved) ? stats.byStatus.approved : 0 %></div>
+                  </div>
+                  <div class="detail-row" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:12px;height:12px;background:#2e7d4f;border-radius:3px;display:inline-block;"></span><span>Shortlisted</span></div>
+                    <div class="detail-shortlisted" style="font-weight:700;color:#1f2a44;"><%= (stats && stats.byStatus && stats.byStatus.shortlisted) ? stats.byStatus.shortlisted : 0 %></div>
+                  </div>
+                  <div class="detail-row" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:12px;height:12px;background:#f0b429;border-radius:3px;display:inline-block;"></span><span>Pending</span></div>
+                    <div class="detail-pending" style="font-weight:700;color:#1f2a44;"><%= (stats && stats.byStatus && stats.byStatus.pending) ? stats.byStatus.pending : 0 %></div>
+                  </div>
+                  <div class="detail-row" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:12px;height:12px;background:#e74c3c;border-radius:3px;display:inline-block;"></span><span>Rejected</span></div>
+                    <div class="detail-rejected" style="font-weight:700;color:#1f2a44;"><%= (stats && stats.byStatus && stats.byStatus.rejected) ? stats.byStatus.rejected : 0 %></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-split">
+          <div class="ad-card">
+            <div class="ad-card-head ad-card-head-row">
+              <div>
+                <div class="ad-card-title">Recent Applicants</div>
+                <div class="ad-card-sub">Click a row to preview details</div>
+              </div>
+              <a href="/admin/applicants" class="ad-link">View all</a>
+            </div>
+
+            <div class="ad-table-wrap">
+              <table class="ad-table" aria-label="Recent applicants">
+                <thead>
+                  <tr>
+                    <th>Applicant</th>
+                    <th>Status</th>
+                    <th>Salary</th>
+                    <th>Date</th>
+                    <th style="text-align:right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recentApplicantsTbody">
+                  <% const recentList = (recentApplicants || []); %>
+                  <% recentList.forEach((a, idx) => { %>
+                    <% const genderIcon = (a.gender || '').toLowerCase() === 'male' ? 'male.png' : (a.gender || '').toLowerCase() === 'female' ? 'female.png' : 'other.png'; %>
+                    <tr
+                      class="ad-row <%= idx === 0 ? 'active' : '' %>"
+                      tabindex="0"
+                      role="button"
+                      data-id="<%= a._id %>"
+                      data-name="<%- (a.name || '').replace(/"/g, '&quot;') %>"
+                      data-email="<%- (a.email || '').replace(/"/g, '&quot;') %>"
+                      data-phone="<%- (a.phone || '').replace(/"/g, '&quot;') %>"
+                      data-status="<%- (a.status || 'pending').replace(/"/g, '&quot;') %>"
+                      data-state="<%- (a.state || '').replace(/"/g, '&quot;') %>"
+                      data-qualification="<%- (a.highestQualification || '').replace(/"/g, '&quot;') %>"
+                      data-college="<%- (a.collegeName || '').replace(/"/g, '&quot;') %>"
+                      data-salary="<%= Number(a.expectedSalary || 0) %>"
+                      data-rating="<%= Number(a.rating || 0) %>"
+                      data-skills="<%- (a.skills || '').replace(/"/g, '&quot;') %>"
+                      data-cv="<%- (a.cvPath || '').replace(/"/g, '&quot;') %>"
+                      data-created="<%- (a.createdAt ? new Date(a.createdAt).toISOString() : '').replace(/"/g, '&quot;') %>"
+                      data-gendericon="<%- genderIcon.replace(/"/g, '&quot;') %>"
+                    >
+                      <td>
+                        <div class="ad-user">
+                          <div class="ad-user-ava">
+                            <img src="/images/icon/<%= genderIcon %>" alt="avatar" />
+                          </div>
+                          <div class="ad-user-meta">
+                            <div class="ad-user-name"><%= a.name || 'Unnamed' %></div>
+                            <div class="ad-user-sub"><%= a.email || '—' %></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="ad-pill ad-pill-<%= (a.status || 'pending') %>"><%= (a.status || 'pending') %></span></td>
+                      <td>₹<%= Number(a.expectedSalary || 0).toLocaleString() %></td>
+                      <td><%= a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' %></td>
+                      <td style="text-align:right;">
+                        <a class="ad-btn" href="/admin/applicant/<%= a._id %>">Open</a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                  <% if (!recentList.length) { %>
+                    <tr><td colspan="5" class="ad-empty">No recent applicants found.</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="ad-panel" aria-label="Applicant preview">
+            <% const first = (recentApplicants && recentApplicants.length) ? recentApplicants[0] : null; %>
+            <% const firstGenderIcon = first ? ((first.gender || '').toLowerCase() === 'male' ? 'male.png' : (first.gender || '').toLowerCase() === 'female' ? 'female.png' : 'other.png') : 'other.png'; %>
+            <div class="ad-panel-card">
+              <div class="ad-panel-head">
+                <div class="ad-panel-title">Applicant</div>
+                <div class="ad-panel-sub" id="previewOrderId"><%= first ? ('ID ' + first._id) : 'No selection' %></div>
+              </div>
+
+              <div class="ad-panel-user">
+                <div class="ad-panel-ava">
+                  <img id="previewAvatar" src="/images/icon/<%= firstGenderIcon %>" alt="avatar" />
+                </div>
+                <div class="ad-panel-user-meta">
+                  <div id="previewName" class="ad-panel-name"><%= first?.name || '—' %></div>
+                  <div id="previewStatus" class="ad-pill <%= first ? ('ad-pill-' + (first.status || 'pending')) : 'ad-pill-pending' %>"><%= first?.status || 'pending' %></div>
+                </div>
+              </div>
+
+              <div class="ad-panel-actions">
+                <a id="previewViewBtn" class="ad-btn ad-btn-primary" href="<%= first ? ('/admin/applicant/' + first._id) : '#' %>">View</a>
+                <a id="previewCvBtn" class="ad-btn" href="<%= first?.cvPath ? ('/' + first.cvPath) : '#' %>" target="_blank" style="<%= first?.cvPath ? '' : 'display:none;' %>">CV</a>
+              </div>
+
+              <div class="ad-panel-info">
+                <div class="ad-info-row"><div class="ad-info-k">Email</div><div class="ad-info-v" id="previewEmail"><%= first?.email || '—' %></div></div>
+                <div class="ad-info-row"><div class="ad-info-k">Phone</div><div class="ad-info-v" id="previewPhone"><%= first?.phone || '—' %></div></div>
+                <div class="ad-info-row"><div class="ad-info-k">State</div><div class="ad-info-v" id="previewState"><%= first?.state || '—' %></div></div>
+                <div class="ad-info-row"><div class="ad-info-k">Qualification</div><div class="ad-info-v" id="previewQualification"><%= first?.highestQualification || '—' %></div></div>
+                <div class="ad-info-row"><div class="ad-info-k">College</div><div class="ad-info-v" id="previewCollege"><%= first?.collegeName || '—' %></div></div>
+                <div class="ad-info-row"><div class="ad-info-k">Expected Salary</div><div class="ad-info-v" id="previewSalary">₹<%= Number(first?.expectedSalary || 0).toLocaleString() %></div></div>
+              </div>
+
+              <div class="ad-panel-items">
+                <div class="ad-panel-title">Skills</div>
+                <div id="previewSkills" class="ad-panel-skills"><%= first?.skills ? (first.skills.length > 220 ? (first.skills.slice(0, 220) + '…') : first.skills) : '—' %></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <!-- Chart.js CDN and init -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <% // Precompute JS-safe values for chart data and filters %>
+    <% const dataApproved = JSON.stringify((stats && stats.byStatus && stats.byStatus.approved) ? stats.byStatus.approved : 0); %>
+    <% const dataShortlisted = JSON.stringify((stats && stats.byStatus && stats.byStatus.shortlisted) ? stats.byStatus.shortlisted : 0); %>
+    <% const dataPending = JSON.stringify((stats && stats.byStatus && stats.byStatus.pending) ? stats.byStatus.pending : 0); %>
+    <% const dataRejected = JSON.stringify((stats && stats.byStatus && stats.byStatus.rejected) ? stats.byStatus.rejected : 0); %>
+
+    <script>
+      // Dashboard overview: global search + preview panel
+      (function () {
+        const globalSearchInput = document.getElementById('globalSearch');
+        if (globalSearchInput) {
+          globalSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              const term = globalSearchInput.value.trim();
+              if (term) window.location.href = `/admin/applicants?search=${encodeURIComponent(term)}`;
+            }
+          });
+          // expose clear helper
+          window.clearGlobalSearch = function() {
+            globalSearchInput.value = '';
+            globalSearchInput.focus();
+          };
+        }
+
+        const tbody = document.getElementById('recentApplicantsTbody');
+        if (!tbody) return;
+
+        const els = {
+          orderId: document.getElementById('previewOrderId'),
+          avatar: document.getElementById('previewAvatar'),
+          name: document.getElementById('previewName'),
+          status: document.getElementById('previewStatus'),
+          email: document.getElementById('previewEmail'),
+          phone: document.getElementById('previewPhone'),
+          state: document.getElementById('previewState'),
+          qualification: document.getElementById('previewQualification'),
+          college: document.getElementById('previewCollege'),
+          salary: document.getElementById('previewSalary'),
+          skills: document.getElementById('previewSkills'),
+          viewBtn: document.getElementById('previewViewBtn'),
+          cvBtn: document.getElementById('previewCvBtn'),
+        };
+
+        const setPill = (node, status) => {
+          if (!node) return;
+          node.className = `ad-pill ad-pill-${status || 'pending'}`;
+          node.textContent = status || 'pending';
+        };
+
+        const formatDate = (iso) => {
+          if (!iso) return '';
+          try {
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          } catch {
+            return '';
+          }
+        };
+
+        const selectRow = (tr) => {
+          if (!tr) return;
+          tbody.querySelectorAll('tr.ad-row').forEach(r => r.classList.remove('active'));
+          tr.classList.add('active');
+
+          const d = tr.dataset || {};
+          const id = d.id || '';
+          const name = d.name || '—';
+          const email = d.email || '—';
+          const phone = d.phone || '—';
+          const status = d.status || 'pending';
+          const state = d.state || '—';
+          const qualification = d.qualification || '—';
+          const college = d.college || '—';
+          const salary = Number(d.salary || 0);
+          const skills = d.skills || '';
+          const cv = d.cv || '';
+          const created = formatDate(d.created || '');
+          const gendericon = d.gendericon || 'other.png';
+
+          if (els.orderId) els.orderId.textContent = id ? `ID ${id}${created ? ` • ${created}` : ''}` : 'No selection';
+          if (els.avatar) els.avatar.src = `/images/icon/${gendericon}`;
+          if (els.name) els.name.textContent = name;
+          setPill(els.status, status);
+          if (els.email) els.email.textContent = email;
+          if (els.phone) els.phone.textContent = phone;
+          if (els.state) els.state.textContent = state;
+          if (els.qualification) els.qualification.textContent = qualification;
+          if (els.college) els.college.textContent = college;
+          if (els.salary) els.salary.textContent = `₹${salary.toLocaleString()}`;
+          if (els.skills) els.skills.textContent = skills ? (skills.length > 220 ? `${skills.slice(0, 220)}…` : skills) : '—';
+
+          if (els.viewBtn) els.viewBtn.href = id ? `/admin/applicant/${id}` : '#';
+          if (els.cvBtn) {
+            if (cv) {
+              els.cvBtn.href = `/${cv}`;
+              els.cvBtn.style.display = '';
+            } else {
+              els.cvBtn.href = '#';
+              els.cvBtn.style.display = 'none';
+            }
+          }
+        };
+
+        tbody.addEventListener('click', (e) => {
+          const tr = e.target?.closest?.('tr.ad-row');
+          if (tr) selectRow(tr);
+        });
+        tbody.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          const tr = e.target?.closest?.('tr.ad-row');
+          if (tr) {
+            e.preventDefault();
+            selectRow(tr);
+          }
+        });
+      })();
+
+      (function(){
+        if (typeof Chart === 'undefined') return;
+        // Line chart: real monthly data
+        const tctx = document.getElementById('trendsChart');
+        if (tctx) {
+          const trendLabels = <%- JSON.stringify(applicantsPerMonth.map(m => m.label)) %>;
+          const trendData = <%- JSON.stringify(applicantsPerMonth.map(m => m.count)) %>;
+          const tChart = new Chart(tctx, {
+            type: 'line',
+            data: {
+              labels: trendLabels,
+              datasets: [{
+                label: 'Applicants',
+                data: trendData,
+                borderColor: '#3b5ccc',
+                backgroundColor: 'rgba(59,92,204,0.08)',
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 2
+              }]
+            },
+            options: {
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: '#eef1f7' }, ticks: { precision: 0 } }
+              }
+            }
+          });
+        }
+
+        // Bar chart: pipeline breakdown (horizontal bar) with details panel
+        const pctx = document.getElementById('pipelineChart');
+        if (pctx) {
+          const dataApproved = <%- (stats && stats.byStatus && stats.byStatus.approved) ? stats.byStatus.approved : 0 %>;
+          const dataShortlisted = <%- (stats && stats.byStatus && stats.byStatus.shortlisted) ? stats.byStatus.shortlisted : 0 %>;
+          const dataPending = <%- (stats && stats.byStatus && stats.byStatus.pending) ? stats.byStatus.pending : 0 %>;
+          const dataRejected = <%- (stats && stats.byStatus && stats.byStatus.rejected) ? stats.byStatus.rejected : 0 %>;
+
+          const pChart = new Chart(pctx, {
+            type: 'bar',
+            data: {
+              labels: ['Approved','Shortlisted','Pending','Rejected'],
+              datasets: [{
+                label: 'Applicants',
+                data: [dataApproved, dataShortlisted, dataPending, dataRejected],
+                backgroundColor: ['#1f6fd8','#2e7d4f','#f0b429','#e74c3c'],
+                borderRadius: 6,
+                barThickness: 18
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.x ?? ctx.parsed}`
+                  }
+                }
+              },
+              scales: {
+                x: { grid: { display: true, color: '#eef1f7' }, ticks: { precision: 0 } },
+                y: { grid: { display: false }, ticks: { font: { weight: 700 }, color: '#1f2a44' } }
+              }
+            }
+          });
+        }
+      })();
+    </script>
+    <% } %>
+
+    <% if (showList) { %>
+    <div class="ad-shell">
+      <%- include('partials/admin-sidebar', { activePage: 'applicants' }) %>
+      <section class="ad-main">
+        <header class="ad-topbar">
+          <div>
+            <div class="ad-page-title">Applicants</div>
+            <div class="ad-page-subtitle">Search, filter and manage applicants</div>
+          </div>
+
+          <div class="ad-topbar-actions">
+            <a href="/admin/dashboard" class="ad-btn">Back to Dashboard</a>
+            
+            <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+          </div>
+        </header>
+
+    <!-- Search and Advanced Filters (SaaS-style) -->
+    <div class="ad-card">
+      <div class="ad-card-head">
+        <div class="ad-card-title">Filters</div>
+        <div class="ad-card-sub">Search and filter applicants</div>
+      </div>
+      <div style="padding:12px 14px;">
+        <form method="GET" action="/admin/applicants" class="ad-form-row" id="applicantsFilterForm">
+          <input type="text" name="search" class="ad-input" placeholder="Search name, email, phone, skills" value="<%= searchTerm || '' %>">
+
+          <select name="status" class="ad-select">
+            <option value="" <%= !currentStatus ? 'selected' : '' %>>All Status</option>
+            <option value="pending" <%= currentStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+            <option value="shortlisted" <%= currentStatus === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+            <option value="approved" <%= currentStatus === 'approved' ? 'selected' : '' %>>Approved</option>
+            <option value="rejected" <%= currentStatus === 'rejected' ? 'selected' : '' %>>Rejected</option>
+          </select>
+
+          <select name="paid" class="ad-select">
+            <option value="" <%= typeof paid === 'undefined' || paid === '' ? 'selected' : '' %>>All</option>
+            <option value="true" <%= paid === 'true' ? 'selected' : '' %>>Paid Only</option>
+            <option value="false" <%= paid === 'false' ? 'selected' : '' %>>Unpaid Only</option>
+          </select>
+
+          <select name="gender" class="ad-select">
+            <option value="" <%= !currentGender ? 'selected' : '' %>>All Genders</option>
+            <option value="Male" <%= currentGender === 'Male' ? 'selected' : '' %>>Male</option>
+            <option value="Female" <%= currentGender === 'Female' ? 'selected' : '' %>>Female</option>
+            <option value="Non-binary" <%= currentGender === 'Non-binary' ? 'selected' : '' %>>Non-binary</option>
+            <option value="Prefer not to say" <%= currentGender === 'Prefer not to say' ? 'selected' : '' %>>Prefer not to say</option>
+            <% if (genders && genders.length) { %>
+              <% genders.forEach(g => { %>
+                <% if (['Male','Female','Non-binary','Prefer not to say'].indexOf(g) === -1) { %>
+                  <option value="<%= g %>" <%= currentGender === g ? 'selected' : '' %>><%= g %></option>
+                <% } %>
+              <% }) %>
+            <% } %>
+          </select>
+
+          <select name="state" class="ad-select">
+            <option value="" <%= !currentState ? 'selected' : '' %>>All States</option>
+            <% if (states && states.length > 0) { %>
+              <% states.forEach(state => { %>
+                <option value="<%= state %>" <%= currentState === state ? 'selected' : '' %>><%= state %></option>
+              <% }) %>
+            <% } %>
+          </select>
+
+          <select name="location" class="ad-select">
+            <option value="" <%= !currentFilter ? 'selected' : '' %>>All Locations</option>
+            <% if (locations && locations.length > 0) { %>
+              <% locations.forEach(location => { %>
+                <option value="<%= location %>" <%= currentFilter === location ? 'selected' : '' %>><%= location %></option>
+              <% }) %>
+            <% } %>
+          </select>
+
+          <select name="collegeTier" class="ad-select">
+            <option value="" <%= !currentTier ? 'selected' : '' %>>All College Tiers</option>
+            <% if (collegeTiers && collegeTiers.length > 0) { %>
+              <% collegeTiers.forEach(tier => { %>
+                <option value="<%= tier %>" <%= currentTier === tier ? 'selected' : '' %>><%= tier %></option>
+              <% }) %>
+            <% } else { %>
+              <option value="Tier 1" <%= currentTier === 'Tier 1' ? 'selected' : '' %>>Tier 1</option>
+              <option value="Tier 2" <%= currentTier === 'Tier 2' ? 'selected' : '' %>>Tier 2</option>
+              <option value="Tier 3" <%= currentTier === 'Tier 3' ? 'selected' : '' %>>Tier 3</option>
+            <% } %>
+          </select>
+
+          <select name="qualification" class="ad-select">
+            <option value="" <%= !currentQualification ? 'selected' : '' %>>All Qualifications</option>
+            <% if (qualifications && qualifications.length > 0) { %>
+              <% qualifications.forEach(q => { %>
+                <option value="<%= q %>" <%= currentQualification === q ? 'selected' : '' %>><%= q %></option>
+              <% }) %>
+            <% } else { %>
+              <option value="B.Tech" <%= currentQualification === 'B.Tech' ? 'selected' : '' %>>B.Tech</option>
+              <option value="M.Tech" <%= currentQualification === 'M.Tech' ? 'selected' : '' %>>M.Tech</option>
+              <option value="B.Sc" <%= currentQualification === 'B.Sc' ? 'selected' : '' %>>B.Sc</option>
+              <option value="M.Sc" <%= currentQualification === 'M.Sc' ? 'selected' : '' %>>M.Sc</option>
+              <option value="MBA" <%= currentQualification === 'MBA' ? 'selected' : '' %>>MBA</option>
+            <% } %>
+          </select>
+
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="submit" class="ad-btn ad-btn-primary">Apply</button>
+            <button type="button" class="ad-btn" onclick="document.getElementById('applicantsFilterForm').reset(); window.location.href='/admin/applicants'">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <% if (applicants && applicants.length > 0) { %>
+      <div id="bulkActionsBar" class="bulk-actions-bar" style="display: none; align-items: center;">
+        <div><strong id="selectedCount">0</strong> selected</div>
+        <button type="button" class="btn btn-danger btn-small" onclick="bulkDeleteApplicants()">Delete Selected</button>
+        <button type="button" class="btn btn-primary btn-small" onclick="bulkStatusUpdate()">Update Status</button>
+      </div>
+
+      <div class="table-section">
+        <div class="table-header">
+          <h3>Applicants</h3>
+          <% const filtersActive = (
+            (typeof searchTerm !== 'undefined' && ('' + searchTerm).trim() !== '') ||
+            (typeof currentStatus !== 'undefined' && ('' + currentStatus) !== '') ||
+            (typeof currentGender !== 'undefined' && ('' + currentGender) !== '') ||
+            (typeof currentState !== 'undefined' && ('' + currentState) !== '') ||
+            (typeof currentFilter !== 'undefined' && ('' + currentFilter) !== '') ||
+            (typeof currentQualification !== 'undefined' && ('' + currentQualification) !== '') ||
+            (typeof currentTier !== 'undefined' && ('' + currentTier) !== '')
+          ); %>
+          <% if (filtersActive) { %>
+            <p class="table-info">Showing <span id="shownCount"><%= applicants.length %></span> of <span id="totalCount"><%= (typeof totalCount !== 'undefined' ? totalCount : 0) %></span> candidates</p>
+          <% } else { %>
+            <p class="table-info"><strong>Total applicants:</strong> <span id="totalCount"><%= (stats && typeof stats.total !== 'undefined') ? stats.total : 0 %></span></p>
+          <% } %>
+        </div>
+
+        <div class="table-container">
+          <table class="applicants-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>Applicant</th>
+                <th>Gender</th>
+                <th>Contact</th>
+                <th>Location</th>
+                <th>Qualification</th>
+                <th>Status</th>
+                <th>Rating</th>
+                <th>Tags</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="applicantsTbody">
+              <% applicants.forEach(applicant => { %>
+                <tr>
+                  <td>
+                    <input type="checkbox" class="applicant-checkbox" value="<%= applicant._id %>" />
+                  </td>
+                  <td>
+                    <div class="applicant-info">
+                      <% 
+                        let genderIcon = 'other.png';
+                        if (applicant.gender === 'Male') genderIcon = 'male.png';
+                        else if (applicant.gender === 'Female') genderIcon = 'female.png';
+                      %>
+                      <img src="/images/icon/<%= genderIcon %>" alt="<%= applicant.gender %>" class="gender-icon">
+                      <div>
+                        <strong><%= applicant.name %></strong>
+                        <% if (applicant.isPaid) { %>
+                          <span class="tag" style="background:#dcfce7;color:#166534;margin-left:6px;">Paid</span>
+                        <% } %>
+                        <br>
+                        <small>Added <%= new Date(applicant.createdAt).toLocaleDateString() %></small>
+                      </div>
+                    </div>
+                  </td>
+                  <td><%= applicant.gender || '—' %></td>
+                  <td>
+                    <div><a href="mailto:<%= applicant.email %>"><%= applicant.email %></a></div>
+                    <div><a href="tel:<%= applicant.phone %>"><%= applicant.phone %></a></div>
+                  </td>
+                  <td>
+                    <div><%= applicant.state %></div>
+                    <small><%= applicant.preferredLocation %></small>
+                  </td>
+                  <td>
+                    <div><%= applicant.highestQualification %></div>
+                    <small><%= applicant.collegeName %> · <%= applicant.collegeTier %></small>
+                  </td>
+                  <td>
+                    <form method="POST" action="/admin/applicant/<%= applicant._id %>/status">
+                      <select name="status" class="status-select" onchange="this.form.submit()">
+                        <option value="pending" <%= applicant.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="shortlisted" <%= applicant.status === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                        <option value="approved" <%= applicant.status === 'approved' ? 'selected' : '' %>>Approved</option>
+                        <option value="rejected" <%= applicant.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td>
+                    <div class="rating-stars">
+                      <% for (let i = 1; i <= 5; i++) { %>
+                        <span class="star <%= applicant.rating >= i ? 'filled' : '' %>"><i class="fa-solid fa-star"></i></span>
+                      <% } %>
+                      <span class="rating-value"><%= applicant.rating || 0 %>/5</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="tags-container">
+                      <% (applicant.tags || []).forEach(tag => { %>
+                        <span class="tag"><%= tag %></span>
+                      <% }) %>
+                    </div>
+                    <input
+                      class="tag-input"
+                      placeholder="Add tag + Enter"
+                      onkeydown="handleTagInput(event, '<%= applicant._id %>')"
+                    />
+                  </td>
+                  <td>
+                    <div><%= applicant.notes ? applicant.notes.slice(0, 80) : 'No notes' %></div>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="openNotesModal('<%= applicant._id %>', '<%= applicant.name %>')">Edit</button>
+                  </td>
+                  <td class="actions-cell">
+                    <a class="btn btn-info btn-small" href="/admin/applicant/<%= applicant._id %>">View</a>
+                    <% if (applicant.cvPath) { %>
+                      <a class="btn btn-primary btn-small" href="/<%= applicant.cvPath %>" target="_blank">CV</a>
+                    <% } %>
+                    <button type="button" class="btn btn-danger btn-small" onclick="deleteApplicant('<%= applicant._id %>', '<%= applicant.name %>')">Delete</button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <!-- Infinite scroll loader removed -->
+        <button id="backToTop" class="back-to-top" style="display:none;" aria-label="Back to top">↑</button>
+            <!-- Pagination Controls -->
+            <div class="pagination pagination-large">
+              <% if (currentPage > 1) { %>
+                <a href="?page=<%= currentPage - 1 %><%=
+                  (typeof searchTerm !== 'undefined' && searchTerm) ? `&search=${encodeURIComponent(searchTerm)}` : ''
+                %><%=
+                  (typeof currentStatus !== 'undefined' && currentStatus) ? `&status=${encodeURIComponent(currentStatus)}` : ''
+                %><%=
+                  (typeof currentGender !== 'undefined' && currentGender) ? `&gender=${encodeURIComponent(currentGender)}` : ''
+                %><%=
+                  (typeof currentState !== 'undefined' && currentState) ? `&state=${encodeURIComponent(currentState)}` : ''
+                %><%=
+                  (typeof currentFilter !== 'undefined' && currentFilter) ? `&location=${encodeURIComponent(currentFilter)}` : ''
+                %><%=
+                  (typeof currentQualification !== 'undefined' && currentQualification) ? `&qualification=${encodeURIComponent(currentQualification)}` : ''
+                %><%=
+                  (typeof currentTier !== 'undefined' && currentTier) ? `&collegeTier=${encodeURIComponent(currentTier)}` : ''
+                %><%=
+                  (typeof paid !== 'undefined' && paid !== '') ? `&paid=${encodeURIComponent(paid)}` : ''
+                %>" class="btn btn-large">⟨ Previous</a>
+              <% } %>
+              <span style="padding: 0 18px; font-size: 18px; font-weight: bold;">Page <%= currentPage %> of <%= totalPages %></span>
+              <% if (currentPage < totalPages) { %>
+                <a href="?page=<%= currentPage + 1 %><%=
+                  (typeof searchTerm !== 'undefined' && searchTerm) ? `&search=${encodeURIComponent(searchTerm)}` : ''
+                %><%=
+                  (typeof currentStatus !== 'undefined' && currentStatus) ? `&status=${encodeURIComponent(currentStatus)}` : ''
+                %><%=
+                  (typeof currentGender !== 'undefined' && currentGender) ? `&gender=${encodeURIComponent(currentGender)}` : ''
+                %><%=
+                  (typeof currentState !== 'undefined' && currentState) ? `&state=${encodeURIComponent(currentState)}` : ''
+                %><%=
+                  (typeof currentFilter !== 'undefined' && currentFilter) ? `&location=${encodeURIComponent(currentFilter)}` : ''
+                %><%=
+                  (typeof currentQualification !== 'undefined' && currentQualification) ? `&qualification=${encodeURIComponent(currentQualification)}` : ''
+                %><%=
+                  (typeof currentTier !== 'undefined' && currentTier) ? `&collegeTier=${encodeURIComponent(currentTier)}` : ''
+                %><%=
+                  (typeof paid !== 'undefined' && paid !== '') ? `&paid=${encodeURIComponent(paid)}` : ''
+                %>" class="btn btn-large">Next ⟩</a>
+              <% } %>
+            </div>
+      </div>
+
+
+    <% } else { %>
+      </section>
+    </div>
+      <div class="no-applicants">
+        <h3>No applicants found</h3>
+        <p>Try clearing filters or run the seed script again.</p>
+        <a href="/admin/applicants" class="btn btn-primary">Reset Filters</a>
+      </div>
+    <% } %>
+    <% } else { %>
+      
+    <% } %>
+    <script>
+      // Infinite scroll setup and logic removed
+      const api = async (url, options = {}) => {
+        const config = { ...options };
+        if (config.body && !config.headers?.['Content-Type']) {
+          config.headers = { ...(config.headers || {}), 'Content-Type': 'application/json' };
+        }
+
+        const response = await fetch(url, config);
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+
+        return response.json();
+      };
+
+      const reloadIfSuccess = (result) => {
+        if (result?.success) {
+          window.location.reload();
+        }
+      };
+
+      const getSelectedIds = () => Array.from(document.querySelectorAll('.applicant-checkbox:checked')).map(cb => cb.value);
+
+      const updateBulkActionsBar = () => {
+        const bar = document.getElementById('bulkActionsBar');
+        if (!bar) return;
+        const selectedCount = getSelectedIds().length;
+        bar.style.display = selectedCount > 0 ? 'flex' : 'none';
+        const countEl = document.getElementById('selectedCount');
+        if (countEl) {
+          countEl.textContent = selectedCount;
+        }
+      };
+
+      const handleTagInput = async (event, applicantId) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        const tag = event.target.value.trim();
+        if (!tag) return;
+
+        try {
+          const data = await api(`/admin/applicant/${applicantId}/tags`, {
+            method: 'POST',
+            body: JSON.stringify({ tags: tag })
+          });
+
+          if (data?.success) {
+            event.target.value = '';
+          }
+
+          reloadIfSuccess(data);
+        } catch (error) {
+          console.error('Error adding tag', error);
+        }
+      };
+
+      let currentNotesApplicantId = null;
+
+      const openNotesModal = (applicantId, applicantName) => {
+        currentNotesApplicantId = applicantId;
+        const modal = document.getElementById('notesModal');
+        const nameEl = document.getElementById('notesApplicantName');
+
+        if (nameEl) {
+          nameEl.textContent = applicantName || '';
+        }
+
+        if (modal) {
+          modal.style.display = 'block';
+        }
+      };
+
+      const closeNotesModal = () => {
+        const modal = document.getElementById('notesModal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      };
+
+      const saveNotes = async () => {
+        const notesField = document.getElementById('notesText');
+        if (!currentNotesApplicantId || !notesField) return;
+
+        try {
+          const data = await api(`/admin/applicant/${currentNotesApplicantId}/notes`, {
+            method: 'POST',
+            body: JSON.stringify({ notes: notesField.value })
+          });
+
+          closeNotesModal();
+          reloadIfSuccess(data);
+        } catch (error) {
+          console.error('Error saving notes', error);
+        }
+      };
+
+      const deleteApplicant = async (applicantId, applicantName) => {
+        showConfirm(
+          `Delete ${applicantName}? This action cannot be undone.`,
+          async () => {
+            try {
+              const data = await api(`/admin/applicant/${applicantId}`, { method: 'DELETE' });
+              showToast('Applicant deleted successfully', 'success');
+              reloadIfSuccess(data);
+            } catch (error) {
+              showToast('Error deleting applicant', 'error');
+              console.error('Error deleting applicant', error);
+            }
+          }
+        );
+      };
+
+      const bulkDeleteApplicants = async () => {
+        const ids = getSelectedIds();
+        if (!ids.length) return;
+
+        showConfirm(
+          `Delete ${ids.length} applicant(s)? This action cannot be undone.`,
+          async () => {
+            try {
+              const data = await api('/admin/bulk-delete', {
+                method: 'POST',
+                body: JSON.stringify({ ids })
+              });
+              showToast('Applicants deleted successfully', 'success');
+              reloadIfSuccess(data);
+            } catch (error) {
+              showToast('Error deleting applicants', 'error');
+              console.error('Error bulk deleting applicants', error);
+            }
+          }
+        );
+      };
+
+      const bulkStatusUpdate = () => {
+        const modal = document.getElementById('statusModal');
+        if (modal) {
+          modal.style.display = 'block';
+        }
+      };
+
+      const closeStatusModal = () => {
+        const modal = document.getElementById('statusModal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      };
+
+      const confirmBulkStatusUpdate = async () => {
+        const statusSelect = document.getElementById('newStatus');
+        const status = statusSelect?.value;
+
+        if (!status) {
+          showToast('Please select a status', 'warning');
+          return;
+        }
+
+        const ids = getSelectedIds();
+        if (!ids.length) return;
+
+        try {
+          const data = await api('/admin/bulk-status', {
+            method: 'POST',
+            body: JSON.stringify({ ids, status })
+          });
+
+          closeStatusModal();
+          reloadIfSuccess(data);
+        } catch (error) {
+          console.error('Error updating bulk status', error);
+        }
+      };
+
+      window.addEventListener('click', (event) => {
+        const notesModal = document.getElementById('notesModal');
+        const statusModal = document.getElementById('statusModal');
+
+        if (event.target === notesModal) {
+          closeNotesModal();
+        }
+
+        if (event.target === statusModal) {
+          closeStatusModal();
+        }
+      });
+
+      window.addEventListener('load', () => {
+        updateBulkActionsBar();
+        updateShownCount();
+
+        const shortlistCountEl = document.getElementById('shortlistCount');
+        if (shortlistCountEl) {
+          const shortlistCount = Array.from(document.querySelectorAll('.status-select'))
+            .filter(select => select.value === 'shortlisted')
+            .length;
+
+          shortlistCountEl.textContent = shortlistCount;
+        }
+
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+          selectAll.addEventListener('change', () => {
+            const checked = selectAll.checked;
+            document.querySelectorAll('.applicant-checkbox').forEach(cb => {
+              cb.checked = checked;
+            });
+            updateBulkActionsBar();
+          });
+        }
+
+        // Back to top init
+        maybeToggleBackToTop();
+        const backBtn = document.getElementById('backToTop');
+        if (backBtn) {
+          backBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+      });
+
+      document.querySelectorAll('.applicant-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActionsBar);
+      });
+
+      window.handleTagInput = handleTagInput;
+      window.openNotesModal = openNotesModal;
+      window.closeNotesModal = closeNotesModal;
+      window.saveNotes = saveNotes;
+      window.deleteApplicant = deleteApplicant;
+      window.bulkDeleteApplicants = bulkDeleteApplicants;
+      window.bulkStatusUpdate = bulkStatusUpdate;
+      window.closeStatusModal = closeStatusModal;
+      window.confirmBulkStatusUpdate = confirmBulkStatusUpdate;
+      window.updateBulkActionsBar = updateBulkActionsBar;
+
+      
+    </script>
+
+<style>
+  .dashboard-main {
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Widen applicants layout on list view */
+  .container.dashboard-main {
+    max-width: 1440px;
+  }
+
+  /* Admin dashboard theme (screenshot-inspired) */
+  .ad-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .ad-sidebar {
+    background: #0f172a;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 14px;
+    position: sticky;
+    top: 12px;
+    height: calc(100vh - 24px);
+    overflow: auto;
+  }
+
+  .ad-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 12px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 12px;
+  }
+
+  .ad-logo {
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    font-size: 14px;
+    color: #e5e7eb;
+  }
+
+  .ad-nav { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; }
+
+  .ad-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: rgba(229,231,235,0.82);
+    border: 1px solid transparent;
+  }
+  .ad-nav-item:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+  }
+  .ad-nav-item.active {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.08);
+    color: #fff;
+  }
+  .ad-nav-item.ad-nav-danger { margin-top: 6px; color: rgba(252,165,165,0.95); }
+  .ad-nav-item.ad-nav-danger:hover { background: rgba(239,68,68,0.12); color: #fecaca; }
+  .ad-nav-ico { width: 18px; display: inline-flex; justify-content: center; }
+
+  .ad-main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+  .ad-topbar {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e7e9f0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .ad-page-title { font-size: 18px; font-weight: 800; color: #0f172a; }
+  .ad-page-subtitle { font-size: 12px; color: #6b7287; }
+
+  .ad-topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .ad-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e1e4ed;
+    border-radius: 999px;
+    padding: 8px 12px;
+    min-width: 280px;
+  }
+  .ad-search-ico { opacity: 0.7; }
+  .ad-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 12px;
+    background: transparent;
+  }
+  .ad-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e7e9f0;
+    background: #fff;
+    cursor: pointer;
+  }
+  .ad-icon-btn:hover { background: #f6f7fb; }
+  .ad-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #111827;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+  }
+
+  .ad-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .ad-kpi {
+    background: #fff;
+    border: 1px solid #e7e9f0;
+    border-radius: 16px;
+    padding: 12px 14px;
+  }
+  .ad-kpi-label { font-size: 11px; font-weight: 800; color: #6b7287; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ad-kpi-value { font-size: 20px; font-weight: 900; color: #0f172a; }
+
+  .ad-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ad-split {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .ad-card {
+    background: #fff;
+    border: 1px solid #e7e9f0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .ad-card-head { padding: 12px 14px; border-bottom: 1px solid #eef1f7; }
+  .ad-card-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .ad-card-title { font-size: 13px; font-weight: 900; color: #0f172a; }
+  .ad-card-sub { font-size: 11px; color: #6b7287; margin-top: 2px; }
+  .ad-link { font-size: 12px; font-weight: 800; color: #111827; text-decoration: none; }
+  .ad-link:hover { text-decoration: underline; }
+
+  .ad-chart { height: 240px; padding: 10px 14px 14px 14px; }
+  .ad-chart canvas { width: 100% !important; height: 100% !important; }
+
+  .ad-table-wrap { overflow: auto; }
+  .ad-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ad-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f7f8fc;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7287;
+    border-bottom: 1px solid #eef1f7;
+    white-space: nowrap;
+  }
+  .ad-table tbody td { padding: 10px 12px; border-bottom: 1px solid #f1f3f8; vertical-align: middle; }
+  .ad-row { cursor: pointer; }
+  .ad-row:hover { background: #fbfcff; }
+  .ad-row.active { background: #f3f6ff; }
+
+  .ad-user { display: flex; gap: 10px; align-items: center; }
+  .ad-user-ava { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: #f1f5f9; flex-shrink: 0; }
+  .ad-user-ava img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-user-name { font-weight: 900; color: #0f172a; }
+  .ad-user-sub { font-size: 11px; color: #6b7287; }
+
+  .ad-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .ad-pill-pending { background: #fff4e5; color: #ad6a00; border-color: #ffe2bd; }
+  .ad-pill-shortlisted { background: #e6f1fb; color: #1f6fd8; border-color: #c8e1f5; }
+  .ad-pill-approved { background: #e6f5ed; color: #2e7d4f; border-color: #c8ebd7; }
+  .ad-pill-rejected { background: #ffe6e6; color: #c0392b; border-color: #ffcccc; }
+
+  .ad-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e1e4ed;
+    font-weight: 900;
+    font-size: 12px;
+    color: #111827;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ad-btn:hover { background: #f6f7fb; }
+  .ad-btn-primary { background: #111827; border-color: #111827; color: #fff; }
+  .ad-btn-primary:hover { background: #0b1220; }
+
+  .ad-empty { padding: 18px; text-align: center; color: #6b7287; }
+
+  .ad-panel { position: sticky; top: 12px; }
+  .ad-panel-card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e7e9f0;
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .ad-panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .ad-panel-title { font-size: 13px; font-weight: 900; color: #0f172a; }
+  .ad-panel-sub { font-size: 11px; color: #6b7287; }
+  .ad-panel-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ad-panel-ava { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: #f1f5f9; }
+  .ad-panel-ava img { width: 100%; height: 100%; object-fit: cover; }
+  .ad-panel-name { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 4px; }
+  .ad-panel-actions { display: flex; gap: 8px; margin: 10px 0 12px 0; }
+  .ad-panel-info { display: flex; flex-direction: column; gap: 8px; }
+  .ad-info-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; background: rgba(255,255,255,0.9); border: 1px solid #eef1f7; border-radius: 12px; }
+  .ad-info-k { font-size: 11px; color: #6b7287; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ad-info-v { font-size: 12px; color: #111827; font-weight: 700; text-align: right; word-break: break-word; }
+  .ad-panel-items { margin-top: 12px; }
+  .ad-panel-skills { font-size: 12px; color: #374151; background: rgba(255,255,255,0.9); border: 1px solid #eef1f7; border-radius: 12px; padding: 10px; line-height: 1.45; }
+
+  .simple-header {
+    margin-bottom: 20px;
+    padding: 12px 0;
+  }
+
+  .simple-header .btn {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 18px 20px;
+    background: linear-gradient(145deg, #ffffff 0%, #f7f8fc 100%);
+    border: 1px solid #e6e8f0;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .header-kicker {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7c89a9;
+    font-weight: 700;
+  }
+
+  .header-left h2 {
+    margin: 0;
+    color: #222;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .header-left .subtitle {
+    color: #4a4f63;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background: #eef1f7;
+    border: 1px solid #d9deeb;
+    border-radius: 999px;
+    color: #3c435a;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .meta-pill strong {
+    color: #1f2a44;
+  }
+
+  .meta-pill.meta-success {
+    background: #e6f5ed;
+    border-color: #c8ebd7;
+    color: #2e7d4f;
+  }
+
+  .meta-pill.meta-warn {
+    background: #fff4e5;
+    border-color: #ffe2bd;
+    color: #ad6a00;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    font-size: 12px;
+  }
+
+  .btn-icon .icon {
+    font-size: 14px;
+  }
+
+  .btn-neutral {
+    background: #fff;
+    color: #1f2a44;
+    border-color: #d8dce7;
+  }
+
+  .btn-neutral:hover {
+    background: #f3f5fb;
+  }
+
+  .btn-success {
+    background: #27ae60;
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #229954;
+  }
+
+  .btn-danger {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #c0392b;
+  }
+
+  .analytics-section {
+    margin-bottom: 20px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e7e9f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(17, 24, 39, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.07);
+    border-color: #d6dbec;
+  }
+
+  .stat-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: #f2f4f8;
+    color: #1f2a44;
+    flex-shrink: 0;
+  }
+
+  .stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    margin: 0;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #6b7287;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2a44;
+    line-height: 1.2;
+  }
+
+  .stat-subtext {
+    margin: 0;
+    font-size: 11px;
+    color: #7d8295;
+  }
+
+  .tone-primary .stat-icon-circle {
+    background: #e8ecff;
+    color: #3044d7;
+  }
+
+  .tone-green .stat-icon-circle {
+    background: #e6f5ed;
+    color: #2e7d4f;
+  }
+
+  .tone-blue .stat-icon-circle {
+    background: #e6f1fb;
+    color: #1f6fd8;
+  }
+
+  .tone-amber .stat-icon-circle {
+    background: #fff4e5;
+    color: #c17300;
+  }
+
+  .tone-salary .stat-icon-circle {
+    background: #f0f7ff;
+    color: #1e88e5;
+  }
+
+  .tone-qual .stat-icon-circle {
+    background: #f5f0ff;
+    color: #7b2cbf;
+  }
+
+  .search-filter-section {
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #e7e9f0;
+    box-shadow: 0 4px 12px rgba(17, 24, 39, 0.04);
+  }
+
+  .search-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .search-filter-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2a44;
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #f3f5fb;
+    border: 1px solid #e1e4ed;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #424a63;
+  }
+
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .input-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 280px;
+    background: #f6f7fb;
+    border: 1px solid #e2e5f0;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  .input-icon {
+    font-size: 14px;
+    color: #6f7691;
+  }
+
+  .search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    outline: none;
+    color: #1f2a44;
+  }
+
+  .search-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .filter-group label {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #6b7287;
+  }
+
+  .form-control {
+    padding: 8px 9px;
+    border: 1px solid #e1e4ed;
+    border-radius: 7px;
+    font-size: 12px;
+    background: #fff;
+    color: #1f2a44;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #6c7cff;
+    box-shadow: 0 0 0 3px rgba(108, 124, 255, 0.15);
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn.ghost {
+    background: #f6f7fb;
+    color: #424a63;
+    border: 1px solid #e1e4ed;
+  }
+
+  .btn.ghost:hover {
+    background: #e9ecf5;
+  }
+
+  .bulk-actions-bar {
+    background: #fff3cd;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid #ffc107;
+    font-size: 12px;
+  }
+
+  .table-section {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .table-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .table-header h3 {
+    margin: 0 0 3px 0;
+    font-size: 14px;
+  }
+
+  .table-info {
+    color: #666;
+    font-size: 11px;
+    margin: 0;
+  }
+
+  .applicants-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .applicants-table thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .applicants-table th {
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    color: #333;
+    text-transform: uppercase;
+  }
+
+  .applicants-table tbody tr {
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+  }
+
+  .applicants-table tbody tr:hover {
+    background: #f9f9f9;
+  }
+
+  .applicants-table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .applicant-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .gender-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f0f2f5;
+  }
+
+  .status-select {
+    padding: 5px 7px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  .rating-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .star {
+    font-size: 16px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .star.filled {
+    color: #ffc107;
+  }
+
+  .star:hover {
+    color: #ffc107;
+  }
+
+  .rating-value {
+    font-size: 10px;
+    color: #666;
+    margin-left: 4px;
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+  }
+
+  .tag-input {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 4px;
+  }
+
+  .btn-small {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+  .pagination-large {
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 12px;
+    }
+  .btn.btn-large {
+      font-size: 15px;
+      padding: 8px 22px;
+      border-radius: 7px;
+      font-weight: 600;
+      background: #f3f5fb;
+      color: #1f2a44;
+      border: 1px solid #d8dce7;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+  .btn.btn-large:hover {
+      background: #e1e4ed;
+      color: #3044d7;
+      border-color: #bfc8e6;
+    }
+
+  .infinite-loader, .end-results {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    padding: 12px 0;
+  }
+
+  .back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 44px;
+    height: 44px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #0d6efd;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 6px 16px rgba(13,110,253,0.4);
+    cursor: pointer;
+    font-size: 18px;
+    z-index: 1000;
+  }
+
+  .back-to-top:hover {
+    background: #0b5ed7;
+  }
+
+  .pagination-btn {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+
+  .pagination-btn:hover {
+    background: #f5f5f5;
+  }
+
+  .pagination-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  .no-applicants {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 13px;
+  }
+
+  .modal {
+    display: block;
+    margin: 8% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+
+  .modal-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .close {
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+  }
+
+  .close:hover {
+    color: #000;
+  }
+
+  .modal-body {
+    padding: 16px 18px;
+    font-size: 12px;
+  }
+
+  .modal-footer {
+    padding: 14px 18px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    color: #000;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .modal-footer {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .header-actions {
+      flex-direction: column;
+    }
+
+    .ad-shell { grid-template-columns: 1fr; }
+    .ad-sidebar { position: relative; height: auto; top: 0; }
+    .ad-grid { grid-template-columns: 1fr; }
+    .ad-split { grid-template-columns: 1fr; }
+    .ad-panel { position: relative; top: 0; }
+    .ad-search { min-width: 200px; width: 100%; }
+  }
+</style>
+
+<%- include('partials/footer') %>

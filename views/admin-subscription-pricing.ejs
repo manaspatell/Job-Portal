@@ -1,0 +1,170 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+
+<main class="admin-theme">
+  <div class="ad-shell">
+    <%- include('partials/admin-sidebar', { activePage: 'pricing' }) %>
+
+    <section class="ad-main">
+      <header class="ad-topbar">
+        <div>
+          <div class="ad-page-title">Subscription Pricing Management</div>
+          <div class="ad-page-subtitle">Update plan pricing, discounts, and offers visible to customers</div>
+        </div>
+        <div class="ad-topbar-actions">
+            <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+        </div>
+      </header>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="ad-alert ad-alert-error">
+          <strong>Error:</strong> <%= error %>
+        </div>
+      <% } %>
+
+      <!-- Plans Grid -->
+      <div class="ad-card" style="padding: 14px;">
+        <div class="ad-card-title" style="margin-bottom: 10px;">Plans</div>
+        <div class="plans-grid">
+        <% plans.forEach(plan => { %>
+            <div class="pricing-card-admin ad-card">
+            <div class="card-header">
+              <h3><%= plan.name %></h3>
+              <p class="card-description"><%= plan.description %></p>
+            </div>
+
+            <form class="pricing-form" onsubmit="updatePricing(event, '<%= plan.id %>')">
+              <!-- Current Price Only -->
+              <div class="form-group">
+                <label>Current Price (₹)</label>
+                <input type="number" name="currentPrice" value="<%= plan.currentPrice %>" 
+                       min="0" step="100" class="form-control" required>
+              </div>
+
+              <!-- Duration (readonly) -->
+              <div class="form-group">
+                <label>Duration</label>
+                <input type="text" value="<%= plan.duration %>" class="form-control" disabled>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-large">
+                <i class="fa-solid fa-check"></i> Update Price
+              </button>
+            </form>
+          </div>
+        <% }) %>
+        </div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="preview-section">
+        <h3>Preview on Subscription Page</h3>
+        <p class="preview-subtitle">This is how customers will see your pricing</p>
+
+        <div class="preview-grid">
+          <% plans.forEach(plan => { %>
+            <div class="preview-card <%= plan.id === 'gold' ? 'featured' : '' %>">
+              <% if (plan.id === 'gold') { %>
+                <div class="preview-badge">Most Popular</div>
+              <% } %>
+              <h4><%= plan.name %></h4>
+              <p class="preview-description"><%= plan.description %></p>
+              
+              <div class="preview-price">
+                <span class="main-price">₹<%= (plan.currentPrice || 0).toLocaleString('en-IN') %></span>
+                <span class="period">/<%= plan.duration %></span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<style>
+  /* SaaS-style pricing page: align with admin-theme */
+
+  :root {
+    --saas-card-bg: #ffffff;
+    --saas-accent: #3b5ccc;
+    --saas-muted: #6b7287;
+    --saas-radius: 10px;
+    --saas-font: 14px;
+  }
+
+  .ad-main { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial; color: #12213a; font-size: var(--saas-font); }
+
+  .plans-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:20px; }
+
+  .pricing-card-admin { background: var(--saas-card-bg); border:1px solid #eef2ff; border-radius:var(--saas-radius); padding:16px; box-shadow:0 10px 30px rgba(2,6,23,0.04); }
+  .pricing-card-admin:hover { transform: translateY(-4px); box-shadow:0 16px 40px rgba(2,6,23,0.06); }
+
+  .card-header h3 { margin:0 0 6px; font-size:16px; font-weight:800; }
+  .card-description { margin:0; font-size:13px; color:var(--saas-muted); }
+
+  .pricing-form { display:flex; flex-direction:column; gap:12px; }
+  .form-group label { font-size:11px; font-weight:700; color:#25303f; text-transform:uppercase; letter-spacing:0.4px; }
+  .form-control { padding:10px 12px; border-radius:8px; border:1px solid #e6edf8; font-size:14px; }
+
+  .btn { padding:10px 14px; border-radius:8px; font-weight:700; }
+  .btn-primary { background:var(--saas-accent); color:#fff; border:none; box-shadow:0 10px 30px rgba(59,92,204,0.12); }
+  .btn-primary:hover { background:#2e4aaa; }
+
+  .preview-section { margin-top:18px; }
+  .preview-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:12px; }
+  .preview-card { background:var(--saas-card-bg); border:1px solid #eef2ff; border-radius:8px; padding:14px; box-shadow:0 8px 24px rgba(2,6,23,0.04); }
+  .preview-card.featured { border-color: var(--saas-accent); background:#f8fbff; }
+  .main-price { font-size:20px; font-weight:800; color:var(--saas-accent); }
+
+  @media (max-width: 768px) { .plans-grid { grid-template-columns: 1fr; } .preview-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  // calculateDiscount removed — cards now only allow setting current price
+
+  function updatePricing(event, planId) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const currentPrice = parseFloat(form.querySelector('input[name="currentPrice"]').value);
+    // Only currentPrice is required now
+
+    if (currentPrice <= 0) {
+      alert('Price must be greater than 0');
+      return;
+    }
+
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-hourglass-half fa-spin"></i> Updating...';
+    }
+
+    fetch(`/admin/subscription-pricing/update`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ plan: planId, currentPrice })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        if (typeof showToast === 'function') showToast(data.message || 'Pricing updated', 'success');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        if (typeof showToast === 'function') showToast(data.error || 'Error updating pricing', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Update Price'; }
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      if (typeof showToast === 'function') showToast('Failed to update pricing', 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Update Price'; }
+    });
+  }
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,411 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+
+<main class="admin-theme">
+  <div class="ad-shell">
+    <%- include('partials/admin-sidebar', { activePage: 'applicants' }) %>
+    <section class="ad-main">
+    <!-- Top Header -->
+    <header class="ad-topbar">
+      <div>
+        <div class="ad-page-title"><%= applicant.name %></div>
+        <div class="ad-page-subtitle"><%= applicant.email %></div>
+      </div>
+
+      <div class="ad-topbar-actions">
+        <a href="/admin/applicants" class="ad-btn">Back to Applicants</a>
+        <span class="ad-pill ad-pill-<%= applicant.status %>"><%= applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1) %></span>
+        <button class="ad-btn" onclick="deleteApplicant()" style="border-color:#ef4444;color:#991b1b;"> <i class="fa-solid fa-trash"></i>&nbsp;Delete</button>
+        <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+      </div>
+    </header>
+
+    <!-- Layout helpers -->
+    <style>
+      .ad-main { min-height: calc(100vh - 160px); }
+      .detail-container {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 18px;
+        align-items: stretch;
+      }
+      .detail-left, .detail-right { display: flex; flex-direction: column; gap: 12px; }
+      .detail-left .detail-card, .detail-right .detail-card { flex: 1 1 auto; display: flex; flex-direction: column; }
+      .detail-card .card-body { flex: 1 1 auto; overflow: auto; }
+      .full-width { grid-column: 1 / -1; }
+      @media (max-width: 900px) {
+        .detail-container { grid-template-columns: 1fr; }
+        .detail-right { order: 2; }
+      }
+    </style>
+
+    <!-- Alerts -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <!-- Main Content Grid -->
+    <div class="detail-container">
+      <!-- Left Column -->
+      <div class="detail-left">
+        <!-- Profile Card -->
+        <div class="detail-card profile-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-user"></i> Profile</h2>
+          </div>
+          <div class="card-body">
+            <div class="profile-section">
+              <div class="info-group">
+                <label class="info-label">Email</label>
+                <p class="info-value">
+                  <a href="mailto:<%= applicant.email %>"><%= applicant.email %></a>
+                </p>
+        <!-- Top Header (SaaS style) -->
+        <header class="ad-topbar">
+          <div>
+            <div class="ad-page-title"><%= applicant.name %></div>
+            <div class="ad-page-subtitle"><%= applicant.email %></div>
+          </div>
+
+          <div class="ad-topbar-actions">
+            <a href="/admin/applicants" class="ad-link">Back to list</a>
+            <span class="status-badge status-<%= applicant.status %>"><%= applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1) %></span>
+            <button class="ad-btn" onclick="deleteApplicant()" title="Delete Applicant"><i class="fa-solid fa-trash"></i></button>
+            <% const avatarImg = (applicant && (applicant.gender || '').toLowerCase() === 'male') ? 'male.png' : (applicant && (applicant.gender || '').toLowerCase() === 'female') ? 'female.png' : 'other.png'; %>
+            <div class="ad-avatar" title="<%= applicant.name %>"><img src="/images/icon/<%= avatarImg %>" alt="Applicant"/></div>
+          </div>
+        </header>
+
+        <!-- Location Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-location-dot"></i> Location</h2>
+          </div>
+          <div class="card-body">
+            <div class="location-info">
+              <div class="info-group">
+                <label class="info-label">Current</label>
+                <p class="info-value"><%= applicant.city %>, <strong><%= applicant.state %></strong></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Preferred</label>
+                <p class="info-value"><strong><%= applicant.preferredLocation || '—' %></strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Education Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Education</h2>
+          </div>
+          <div class="card-body">
+            <div class="education-info">
+              <div class="info-group">
+                <label class="info-label">Qualification</label>
+                <p class="info-value"><%= applicant.highestQualification || '—' %></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">College</label>
+                <p class="info-value"><%= applicant.collegeName || '—' %></p>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Tier</label>
+                <span class="tier-badge tier-<%= applicant.collegeTier?.toLowerCase() %>"><%= applicant.collegeTier || '—' %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-lightbulb"></i> Skills</h2>
+          </div>
+          <div class="card-body">
+            <div class="skills-container">
+              <% if (applicant.skills) { %>
+                <% applicant.skills.split(',').map(s => s.trim()).forEach(skill => { %>
+                  <span class="skill-tag"><%= skill %></span>
+                <% }) %>
+              <% } else { %>
+                <p class="text-muted">No skills added</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary Card -->
+        <div class="detail-card salary-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-coins"></i> Salary Expectation</h2>
+          </div>
+          <div class="card-body">
+            <div class="salary-display">
+              <span class="currency">₹</span>
+              <span class="amount"><%= applicant.expectedSalary?.toLocaleString('en-IN') || '0' %></span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="detail-right">
+        <!-- Status & Rating Card -->
+        <div class="detail-card status-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-star"></i> Status & Rating</h2>
+          </div>
+          <div class="card-body">
+            <div class="status-section">
+              <label class="section-label">Application Status</label>
+              <select id="statusSelect" class="form-control status-select" onchange="updateStatus()">
+                <option value="pending" <%= applicant.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="shortlisted" <%= applicant.status === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+                <option value="approved" <%= applicant.status === 'approved' ? 'selected' : '' %>>Approved</option>
+                <option value="rejected" <%= applicant.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+              </select>
+            </div>
+            <div class="rating-section">
+              <label class="section-label">Your Rating</label>
+              <div class="rating-container">
+                <% for (let i = 1; i <= 5; i++) { %>
+                  <button class="star-btn <%= applicant.rating >= i ? 'active' : '' %>" onclick="setRating(<%= i %>)" title="<%= i %> star(s)"><i class="fa-solid fa-star"></i></button>
+                <% } %>
+                <span class="rating-text">(<%= applicant.rating || 0 %>/5)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags Card -->
+        <div class="detail-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-tag"></i> Tags</h2>
+          </div>
+          <div class="card-body">
+            <div class="tags-section">
+              <% if (applicant.tags && applicant.tags.length > 0) { %>
+                <div class="tags-list">
+                  <% applicant.tags.forEach(tag => { %>
+                    <span class="tag-pill"><%= tag %></span>
+                  <% }) %>
+                </div>
+              <% } else { %>
+                <p class="text-muted">No tags added</p>
+              <% } %>
+              <input 
+                type="text" 
+                id="tagInput" 
+                placeholder="Add tag (press Enter)..." 
+                class="form-control tag-input"
+                onkeypress="handleAddTag(event)"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- CV Card -->
+        <div class="detail-card cv-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-file-lines"></i> Resume</h2>
+          </div>
+          <div class="card-body">
+            <% if (applicant.cvPath) { %>
+              <div class="cv-available">
+                <div class="cv-icon"><i class="fa-solid fa-file-lines"></i></div>
+                <p class="cv-status">Resume uploaded</p>
+                <a href="/<%= applicant.cvPath %>" target="_blank" class="btn btn-primary btn-sm" download>
+                  ⬇️ Download CV
+                </a>
+              </div>
+            <% } else { %>
+              <div class="cv-empty">
+                <p class="text-muted">No resume uploaded</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="detail-card metadata-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-clipboard"></i> Details</h2>
+          </div>
+          <div class="card-body">
+            <div class="metadata-item">
+              <span class="meta-label">Applied:</span>
+              <span class="meta-value"><%= new Date(applicant.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+            </div>
+            <div class="metadata-item">
+              <span class="meta-label">Time:</span>
+              <span class="meta-value"><%= new Date(applicant.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
+            </div>
+            <div class="metadata-item">
+              <span class="meta-label">ID:</span>
+              <span class="meta-value mono"><%= applicant._id %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Width Notes Section -->
+    <div class="detail-card notes-card full-width">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-file-pen"></i> Internal Notes</h2>
+      </div>
+      <div class="card-body">
+        <textarea 
+          id="notesText" 
+          class="form-control notes-textarea"
+          placeholder="Add internal notes about this applicant..."
+          style="min-height: 150px;"
+        ><%= applicant.notes || '' %></textarea>
+        <button onclick="saveNotes()" class="btn btn-primary btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Notes</button>
+      </div>
+    </div>
+    </section>
+  </div>
+</main>
+
+      <!-- Activity Timeline removed per request -->
+    </div>
+  </section>
+</main>
+
+<script>
+  const applicantId = '<%= applicant._id %>';
+
+  function updateStatus() {
+    const newStatus = document.getElementById('statusSelect').value;
+    fetch(`/admin/applicant/${applicantId}/status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Status updated successfully!', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast('Error updating status', 'error');
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      showToast('Error updating status', 'error');
+    });
+  }
+
+  function setRating(rating) {
+    fetch(`/admin/applicant/${applicantId}/rating`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ rating: rating })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Rating updated successfully!', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showToast('Error updating rating', 'error');
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      showToast('Error updating rating', 'error');
+    });
+  }
+
+  function handleAddTag(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const tag = event.target.value.trim();
+      if (tag) {
+        fetch(`/admin/applicant/${applicantId}/tags`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ tag: tag })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Tag added successfully!', 'success');
+            event.target.value = '';
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            showToast('Error adding tag', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showToast('Error adding tag', 'error');
+        });
+      }
+    }
+  }
+
+  function saveNotes() {
+    const notes = document.getElementById('notesText').value;
+    fetch(`/admin/applicant/${applicantId}/notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ notes: notes })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Notes saved successfully!', 'success');
+      } else {
+        showToast('Error saving notes', 'error');
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      showToast('Error saving notes', 'error');
+    });
+  }
+
+  function deleteApplicant() {
+    showConfirm(
+      'Are you sure you want to delete this applicant? This action cannot be undone.',
+      () => {
+        fetch(`/admin/applicant/${applicantId}`, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Applicant deleted successfully!', 'success');
+            setTimeout(() => {
+              window.location.href = '/admin/dashboard';
+            }, 1000);
+          } else {
+            showToast('Error deleting applicant', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showToast('Error deleting applicant', 'error');
+        });
+      }
+    );
+</script>
+
+<%- include('partials/footer') %>

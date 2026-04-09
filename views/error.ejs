@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+
+<main class="container">
+  <section class="error-section">
+    <div class="error-box">
+      <h2>An Error Occurred</h2>
+      <p><%= error %></p>
+      
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">Back to Home</a>
+        <a href="/apply" class="btn btn-secondary">Apply Now</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

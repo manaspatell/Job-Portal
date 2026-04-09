@@ -1,0 +1,198 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                    🌱 SEED SCRIPT - QUICK REFERENCE                         ║
+║                                                                               ║
+║              Generate 150 Sample Applicants for Testing                      ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 HOW TO RUN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EASIEST WAY (Using npm script):
+  $ npm run seed
+
+OR direct with Node:
+  $ node seed.js
+
+⏱️  Execution time: 2-5 seconds
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ WHAT GETS CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ 150 Sample Applicants with:
+   • Full Name (realistic names)
+   • Address (US address format)
+   • Current Location (real US cities)
+   • Previous Company (Google, Microsoft, etc.)
+   • Education (MIT, Stanford, etc.)
+   • Expected Salary ($40K - $200K range)
+   • Preferred Location (cities or Remote/Hybrid)
+   • CV File (80% have CV, 20% don't)
+   • Creation Date (last 90 days)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 DATA STATISTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total Records:              150
+With CV Files:              120 (80%)
+Without CV Files:           30 (20%)
+Average Salary:             ~$120,000
+Salary Range:               $40,000 - $200,000
+Companies in Data:          48 major companies
+Universities in Data:       42 top universities
+Locations in Data:          20+ US cities
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before running seed.js:
+
+  ✅ Node.js installed
+  ✅ npm install completed
+  ✅ MongoDB running (mongod command)
+  ✅ .env file configured with MONGODB_URI
+  ✅ Dependencies installed (mongoose)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  CAUTION: This script DELETES all existing applicants!
+
+Before running on any important data:
+  ❌ Backup your database first
+  ❌ Do NOT use on production database
+  ✅ Use on test/development database only
+
+To prevent deletion:
+  Comment out line in seed.js:
+  // await Applicant.deleteMany({});
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 TYPICAL WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1: Ensure MongoDB is running
+  $ mongod
+  (Keep this terminal open)
+
+Step 2: In a new terminal, run seed
+  $ npm run seed
+  (Wait for completion message)
+
+Step 3: See the data
+  $ npm run dev
+  (Start the server)
+
+Step 4: View in admin dashboard
+  Visit: http://localhost:3000/admin/login
+  Login: admin@example.com / admin123
+  See: 150 applicants in the table!
+
+Step 5: Test features
+  ✅ Filter by location
+  ✅ Sort by salary/name/date
+  ✅ Download CV links
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 CUSTOMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Change number of records:
+  Edit seed.js line:
+  generateApplicants(150);  // Change 150 to any number
+
+Add more companies:
+  Edit firstNames/lastNames/companies arrays in seed.js
+
+Adjust salary range:
+  Edit getRandomSalary() function:
+  Math.random() * (MAX - MIN + 1) + MIN
+
+Change CV probability:
+  Edit line:
+  const hasCv = Math.random() > 0.2;  // 0.2 = 80% with CV
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📺 EXPECTED OUTPUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When you run "npm run seed", you'll see:
+
+✅ Cleared existing applicants
+✅ Generated 150 sample applicants
+✅ Successfully inserted 150 applicants into database
+
+📊 SEED DATA SUMMARY:
+   Total Applicants: 150
+   Average Expected Salary: $118,500
+   Applicants with CV: 120
+   Applicants without CV: 30
+
+📝 SAMPLE RECORDS:
+
+   1. James Smith
+      Location: New York, NY
+      Preferred: Remote
+      Education: MIT
+      Company: Google
+      Salary: $150,000
+      CV: ✅ Yes
+
+   2. Sarah Johnson
+      Location: San Francisco, CA
+      Preferred: New York
+      Education: Stanford University
+      Company: Microsoft
+      Salary: $165,000
+      CV: ✅ Yes
+
+   ... (3 more samples)
+
+✅ SEED COMPLETED SUCCESSFULLY!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❓ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q: Error "Cannot find module mongoose"
+A: Run: npm install
+
+Q: Error "MongoDB connection refused"
+A: Start MongoDB: mongod (in another terminal)
+
+Q: Error "MONGODB_URI not found in .env"
+A: Check .env exists and has MONGODB_URI defined
+
+Q: Script hangs without completing
+A: MongoDB might be down, check connection
+
+Q: Nothing happens
+A: Check terminal is in correct directory (20k folder)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 MORE INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For detailed information:
+  → See SEED_INSTRUCTIONS.md
+
+For setup help:
+  → See SETUP_GUIDE.txt
+
+For testing instructions:
+  → See QUICKSTART.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: seed.js
+Command: npm run seed
+Records: 150 applicants
+Status: ✅ Ready to use
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

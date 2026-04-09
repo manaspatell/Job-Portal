@@ -1,0 +1,110 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-theme.css">
+
+<main class="admin-theme">
+  <div class="ad-shell">
+    <%- include('partials/admin-sidebar', { activePage: 'report' }) %>
+
+    <section class="ad-main">
+      <header class="ad-topbar">
+        <div>
+          <div class="ad-page-title">Applicants Status Report</div>
+          <div class="ad-page-subtitle">Who updated applicant status, with filters</div>
+        </div>
+        <div class="ad-topbar-actions">
+          <a class="ad-btn" href="/admin/dashboard">Back to Dashboard</a>
+          <div class="ad-avatar" title="Admin"><img src="/images/icon/admin.png" alt="Admin"/></div>
+        </div>
+      </header>
+
+      <div class="ad-card">
+        <div class="ad-card-head">
+          <div class="ad-card-title">Filters</div>
+          <div class="ad-card-sub">Use any combination to narrow results</div>
+        </div>
+        <div style="padding: 12px 14px;">
+          <form method="GET" action="/admin/report" class="ad-form-row">
+            <input type="text" name="search" class="ad-input" placeholder="Name, email, school..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+            <select name="status" class="ad-select">
+              <option value="">All Status</option>
+              <option value="pending" <%= status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="shortlisted" <%= status === 'shortlisted' ? 'selected' : '' %>>Shortlisted</option>
+              <option value="approved" <%= status === 'approved' ? 'selected' : '' %>>Approved</option>
+              <option value="rejected" <%= status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+            </select>
+            <select name="school" class="ad-select">
+              <option value="">All Schools</option>
+              <% (schools || []).forEach(s => { %>
+                <option value="<%= s._id %>" <%= school === String(s._id) ? 'selected' : '' %>><%= s.name %></option>
+              <% }) %>
+            </select>
+            <input type="text" name="location" class="ad-input" placeholder="School location..." value="<%= typeof location !== 'undefined' ? location : '' %>">
+            <select name="paid" class="ad-select">
+              <option value="">All</option>
+              <option value="true" <%= paid === 'true' ? 'selected' : '' %>>Paid Only</option>
+              <option value="false" <%= paid === 'false' ? 'selected' : '' %>>Unpaid Only</option>
+            </select>
+            <button type="submit" class="ad-btn ad-btn-primary">Apply</button>
+            <a href="/admin/report" class="ad-btn">Clear</a>
+          </form>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <div class="ad-card-title">Applicants Report</div>
+            <div class="ad-card-sub">Total: <%= (applicants || []).length %></div>
+          </div>
+        </div>
+        <div class="ad-table-wrap">
+          <table class="ad-table" style="min-width: 900px;">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Status Updated By</th>
+                <th>Updated At</th>
+                <th>School Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% (applicants || []).forEach(app => { %>
+                <tr class="ad-row">
+                  <td>
+                    <%= app.name %>
+                    <% if (app.isPaid) { %>
+                      <span class="ad-pill ad-pill-verified" style="margin-left:6px;">Paid</span>
+                    <% } %>
+                  </td>
+                  <td><%= app.email %></td>
+                  <td>
+                    <span class="ad-pill ad-pill-<%= app.status || 'pending' %>"><%= app.status || 'pending' %></span>
+                    <% if (app.isPaid && app.rating === 5) { %>
+                      <span class="ad-pill ad-pill-approved" style="margin-left:6px;">Rating 5</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (app.statusUpdatedBy) { %>
+                      <%= app.statusUpdatedBy.name %> (<%= app.statusUpdatedBy.email %>)
+                    <% } else { %>
+                      —
+                    <% } %>
+                  </td>
+                  <td><%= app.statusUpdatedAt ? new Date(app.statusUpdatedAt).toLocaleString() : '—' %></td>
+                  <td><%= app.statusUpdatedBy && app.statusUpdatedBy.location ? app.statusUpdatedBy.location : '—' %></td>
+                </tr>
+              <% }) %>
+              <% if (!applicants || applicants.length === 0) { %>
+                <tr><td colspan="6" style="padding: 18px; text-align:center; color:#6b7287;">No records found.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

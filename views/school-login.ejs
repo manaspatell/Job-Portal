@@ -1,0 +1,1167 @@
+<%- include('partials/header') %>
+
+<main class="school-login-layout">
+  <div class="login-container">
+    <!-- Left Side - Branding -->
+    <div class="login-brand-section">
+      <div class="brand-content">
+        <div class="brand-logo">TRMS</div>
+        <h1 class="brand-title">Teacher Recruitment System</h1>
+        <p class="brand-subtitle">Manage your school's hiring process efficiently</p>
+        
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-check"></i></span>
+            <span class="feature-text">Easy candidate management</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-check"></i></span>
+            <span class="feature-text">Real-time application tracking</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-check"></i></span>
+            <span class="feature-text">Secure credential access</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon"><i class="fa-solid fa-check"></i></span>
+            <span class="feature-text">Team collaboration tools</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Login Form -->
+    <div class="login-form-section">
+      <div class="login-form-card">
+        <div class="form-header">
+          <h2>Welcome Back</h2>
+          <p>Sign in to your school account</p>
+        </div>
+
+        <% if (error) { %>
+          <div class="alert alert-error">
+            <span class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <span><%= error.replace('email', 'user ID') %></span>
+          </div>
+        <% } %>
+
+        <form method="POST" action="/school/login" class="login-form">
+          <div class="form-group">
+            <label for="loginId" class="form-label">User ID or Email</label>
+            <input 
+              id="loginId" 
+              name="loginId" 
+              type="text" 
+              class="form-control login-input" 
+              placeholder="Enter your User ID or Email"
+              required
+              autofocus
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input 
+              id="password" 
+              name="password" 
+              type="password" 
+              class="form-control login-input" 
+              placeholder="Enter your password"
+              required
+            >
+          </div>
+
+          <div class="form-remember">
+            <label class="checkbox-label">
+              <input type="checkbox" name="remember" class="checkbox-input">
+              <span>Remember me</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-login">
+            <span>Sign In</span>
+            <span class="btn-icon">→</span>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <button type="button" class="btn-contact" onclick="openCredentialsModal()">
+            Don't have credentials?
+          </button>
+          <button type="button" class="btn-track" onclick="openTrackProgressModal()">
+            Track Progress
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="login-footer">
+        <p class="footer-copyright">© 2024 Teacher Recruitment Management System. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Modal -->
+  <div id="emailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Get Started</h2>
+        <button type="button" class="modal-close" onclick="closeCredentialsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle">Enter your email to explore our subscription plans</p>
+        <form id="emailForm" class="email-form">
+          <div class="form-group">
+            <label for="userEmail" class="form-label">Email Address</label>
+            <input 
+              id="userEmail" 
+              name="email" 
+              type="email" 
+              class="form-control modal-input" 
+              placeholder="your.email@gmail.com"
+              required
+              autofocus
+            >
+          </div>
+          <button type="submit" class="btn-submit">Continue to Plans</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track Progress Modal -->
+  <div id="trackProgressModal" class="modal" style="display: none;">
+    <div class="modal-content track-modal">
+      <div class="modal-header">
+        <h2>Track Your Progress</h2>
+        <button type="button" class="modal-close" onclick="closeTrackProgressModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle">Enter the email you used during registration to check your verification status</p>
+        
+        <form id="trackForm" class="email-form">
+          <div class="form-group">
+            <label for="trackEmail" class="form-label">Email Address</label>
+            <input 
+              id="trackEmail" 
+              name="email" 
+              type="email" 
+              class="form-control modal-input" 
+              placeholder="your.email@gmail.com"
+              required
+              autofocus
+            >
+          </div>
+          <button type="submit" class="btn-submit">Check Status</button>
+        </form>
+
+        <div id="trackingResult" class="tracking-result" style="display: none;">
+          <div id="resultContent"></div>
+        </div>
+
+        <div id="trackingError" class="tracking-error" style="display: none;">
+          <div id="errorContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscription Expired Modal -->
+  <div id="subscriptionModal" class="modal" style="display: none;">
+    <div class="modal-content subscription-modal">
+      <div class="modal-header">
+          <h2 id="modalTitle"><i class="fa-solid fa-hourglass-half"></i> Subscription Expired</h2>
+          <button type="button" class="modal-close" onclick="closeSubscriptionModal()" style="display: none;">&times;</button>
+        </div>
+      <div class="modal-body">
+          <div class="subscription-alert">
+          <div class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="alert-message">
+            <h3 id="modalHeading">Your subscription has expired</h3>
+            <p id="modalDescription">Your account access is currently unavailable. Please renew your subscription to continue using the TRMS platform.</p>
+          </div>
+        </div>
+        
+        <div class="subscription-details">
+          <div class="detail-item">
+            <span class="detail-label">School Name:</span>
+            <span class="detail-value" id="schoolNameDisplay"></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value badge-expired" id="statusBadge">Subscription Expired</span>
+          </div>
+        </div>
+
+        <div class="subscription-action">
+          <p class="action-text" id="actionText">Renew your subscription now to regain access to your account and continue hiring.</p>
+          <button type="button" class="btn btn-renew" id="actionButton" onclick="redirectToSubscription()">
+            <span id="actionButtonLabel">Renew Subscription</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+  /* School Login Page Styling */
+  body {
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+
+  .school-login-layout {
+    display: flex;
+    min-height: 100vh;
+    background: white;
+  }
+
+  .login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Brand Section */
+  .login-brand-section {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .brand-content {
+    max-width: 400px;
+  }
+
+  .brand-logo {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .brand-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .brand-subtitle {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-bottom: 40px;
+    font-weight: 500;
+  }
+
+  .brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 14px;
+  }
+
+  /* Form Section */
+  .login-form-section {
+    background: white;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-form-card {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .form-header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .form-header h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  .form-header p {
+    margin: 0;
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+
+  .alert {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .alert-error {
+    background: #fadbd8;
+    color: #922b21;
+    border-left: 4px solid #c0392b;
+  }
+
+  .alert-icon {
+    flex-shrink: 0;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
+  .login-input {
+    padding: 12px 14px;
+    border: 1px solid #d0d8e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2c3e50;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .login-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    background: #f8fbff;
+  }
+
+  .login-input::placeholder {
+    color: #bdc3d0;
+  }
+
+  .form-remember {
+    display: flex;
+    align-items: center;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #5a6c7d;
+    cursor: pointer;
+    font-weight: 500;
+    user-select: none;
+  }
+
+  .checkbox-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #0066cc;
+  }
+
+  .btn-login {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+  }
+
+  .btn-login:active {
+    transform: translateY(0);
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .btn-contact {
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 20px;
+    border: 2px solid #0066cc;
+    background: white;
+    color: #0066cc;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-contact:hover {
+    background: #0066cc;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  }
+
+  .btn-contact:active {
+    transform: translateY(0);
+  }
+
+  .btn-track {
+    padding: 12px 20px;
+    background: white;
+    color: #27ae60;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-track:hover {
+    background: #27ae60;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+  }
+
+  .btn-track:active {
+    transform: translateY(0);
+  }
+
+  .form-footer {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f3f8;
+    text-align: center;
+  }
+
+  .footer-text {
+    margin: 0;
+    font-size: 13px;
+    color: #5a6c7d;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .text-muted {
+    color: #95a5a6;
+    font-weight: 400;
+  }
+
+  .login-footer {
+    margin-top: auto;
+    padding-top: 30px;
+    border-top: 1px solid #f0f3f8;
+    text-align: center;
+  }
+
+  .footer-copyright {
+    margin: 0;
+    font-size: 11px;
+    color: #95a5a6;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .login-container {
+      grid-template-columns: 1fr;
+    }
+
+    .login-brand-section {
+      padding: 40px 30px;
+      display: none;
+    }
+
+    .login-form-section {
+      padding: 40px 30px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .school-login-layout {
+      min-height: auto;
+    }
+
+    .login-container {
+      box-shadow: none;
+    }
+
+    .login-form-section {
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .login-form-card {
+      max-width: 100%;
+    }
+
+    .form-header h2 {
+      font-size: 24px;
+    }
+
+    .brand-logo {
+      font-size: 36px;
+    }
+  }
+
+  /* Modal Styling */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .modal-header {
+    padding: 30px 30px 20px;
+    border-bottom: 1px solid #f0f3f8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #7f8c8d;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .modal-close:hover {
+    background: #f0f3f8;
+    color: #2c3e50;
+  }
+
+  .modal-body {
+    padding: 30px;
+  }
+
+  .modal-subtitle {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #5a6c7d;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  .email-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal-input {
+    padding: 12px 14px;
+    border: 1px solid #d0d8e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2c3e50;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    background: #f8fbff;
+  }
+
+  .btn-submit {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+  }
+
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+
+  .track-modal {
+    max-width: 500px;
+  }
+
+  .tracking-result {
+    margin-top: 24px;
+    padding: 20px;
+    background: #f0fdf4;
+    border: 2px solid #27ae60;
+    border-radius: 12px;
+  }
+
+  .tracking-result h3 {
+    margin: 0 0 16px;
+    color: #1e8449;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #2c3e50;
+  }
+
+  .status-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .status-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .status-icon.completed {
+    background: #27ae60;
+    color: white;
+  }
+
+  .status-icon.pending {
+    background: #f39c12;
+    color: white;
+  }
+
+  .status-text {
+    flex: 1;
+  }
+
+  .status-label {
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .status-value {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  .status-badge.approved {
+    background: #e8f8f2;
+    color: #1e8449;
+  }
+
+  .status-badge.pending {
+    background: #fff5e6;
+    color: #b36b00;
+  }
+
+  .tracking-error {
+    margin-top: 24px;
+    padding: 20px;
+    background: #fee;
+    border: 2px solid #c33;
+    border-radius: 12px;
+  }
+
+  .tracking-error h3 {
+    margin: 0 0 8px;
+    color: #922b21;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .tracking-error p {
+    margin: 0;
+    font-size: 14px;
+    color: #741d28;
+    line-height: 1.5;
+  }
+
+  /* Subscription Modal Styles */
+  .subscription-modal {
+    max-width: 520px;
+    border: 2px solid #f39c12;
+  }
+
+  .subscription-modal .modal-header {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border-bottom: none;
+  }
+
+  .subscription-modal .modal-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .subscription-alert {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: #fffbf0;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    border-left: 4px solid #f39c12;
+  }
+
+  .subscription-alert .alert-icon {
+    flex-shrink: 0;
+    font-size: 32px;
+  }
+
+  .subscription-alert .alert-message {
+    flex: 1;
+  }
+
+  .subscription-alert h3 {
+    margin: 0 0 6px;
+    color: #d68910;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .subscription-alert p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .subscription-details {
+    padding: 20px;
+    background: #f8fbff;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    border: 1px solid #e8ecf1;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 14px;
+  }
+
+  .detail-item:not(:last-child) {
+    border-bottom: 1px solid #e8ecf1;
+    margin-bottom: 10px;
+  }
+
+  .detail-label {
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  .detail-value {
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .badge-expired {
+    background: #fee;
+    color: #c33;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-pending {
+    background: #fff5e6;
+    color: #b36b00;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .subscription-action {
+    padding: 20px;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 1px solid #27ae60;
+    text-align: center;
+  }
+
+  .action-text {
+    margin: 0 0 16px;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  .btn-renew {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+  }
+
+  .btn-renew:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+  }
+
+  .btn-renew:active {
+    transform: translateY(0);
+  }
+
+  .btn-arrow {
+    font-size: 18px;
+  }
+
+</style>
+
+<script>
+  function openCredentialsModal() {
+    document.getElementById('emailModal').style.display = 'flex';
+  }
+
+  function closeCredentialsModal() {
+    document.getElementById('emailModal').style.display = 'none';
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('emailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeCredentialsModal();
+    }
+  });
+
+  // Handle form submission
+  document.getElementById('emailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('userEmail').value;
+    // Store email in localStorage for tracking
+    localStorage.setItem('userEmail', email);
+    // Redirect to subscription pricing page
+    window.location.href = '/subscription-pricing?email=' + encodeURIComponent(email);
+  });
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeCredentialsModal();
+      closeTrackProgressModal();
+    }
+  });
+
+  // Track Progress Functions
+  function openTrackProgressModal() {
+    document.getElementById('trackProgressModal').style.display = 'flex';
+    document.getElementById('trackEmail').focus();
+  }
+
+  function closeTrackProgressModal() {
+    document.getElementById('trackProgressModal').style.display = 'none';
+    document.getElementById('trackForm').reset();
+    document.getElementById('trackingResult').style.display = 'none';
+    document.getElementById('trackingError').style.display = 'none';
+  }
+
+  // Close track modal when clicking outside
+  document.getElementById('trackProgressModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeTrackProgressModal();
+    }
+  });
+
+  // Handle track form submission
+  document.getElementById('trackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('trackEmail').value;
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Checking...';
+
+    fetch('/api/track-payment?email=' + encodeURIComponent(email))
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('trackingError').style.display = 'none';
+        
+        if (data.success && data.payment) {
+          const payment = data.payment;
+          let statusHtml = '<h3>✓ Payment Found</h3>';
+          
+          statusHtml += '<div class="status-item">';
+          statusHtml += '<div class="status-icon completed">✓</div>';
+          statusHtml += '<div class="status-text">';
+          statusHtml += '<div class="status-label">Institute Name</div>';
+          statusHtml += '<div class="status-value">' + payment.instituteName + '</div>';
+          statusHtml += '</div></div>';
+
+          statusHtml += '<div class="status-item">';
+          statusHtml += '<div class="status-icon completed">✓</div>';
+          statusHtml += '<div class="status-text">';
+          statusHtml += '<div class="status-label">Subscription Plan</div>';
+          statusHtml += '<div class="status-value">' + payment.plan + '</div>';
+          statusHtml += '</div></div>';
+
+          const submittedDate = new Date(payment.submittedAt).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+          });
+          statusHtml += '<div class="status-item">';
+          statusHtml += '<div class="status-icon completed">✓</div>';
+          statusHtml += '<div class="status-text">';
+          statusHtml += '<div class="status-label">Submitted On</div>';
+          statusHtml += '<div class="status-value">' + submittedDate + '</div>';
+          statusHtml += '</div></div>';
+
+          statusHtml += '<div class="status-item">';
+          if (payment.status === 'approved') {
+            statusHtml += '<div class="status-icon completed">✓</div>';
+            statusHtml += '<div class="status-text">';
+            statusHtml += '<div class="status-label">Verification Status</div>';
+            statusHtml += '<div class="status-value">Approved <span class="status-badge approved">APPROVED</span></div>';
+            statusHtml += '<div class="status-value" style="margin-top: 6px;">Your credentials are ready! You can now login to the system.</div>';
+            statusHtml += '</div></div>';
+          } else {
+            statusHtml += '<div class="status-icon pending">⏳</div>';
+            statusHtml += '<div class="status-text">';
+            statusHtml += '<div class="status-label">Verification Status</div>';
+            statusHtml += '<div class="status-value">Pending <span class="status-badge pending">PENDING</span></div>';
+            statusHtml += '<div class="status-value" style="margin-top: 6px;">Our team is reviewing your submission. We typically verify within 1-2 days. We\'ll update you via WhatsApp.</div>';
+            statusHtml += '</div></div>';
+          }
+
+          document.getElementById('resultContent').innerHTML = statusHtml;
+          document.getElementById('trackingResult').style.display = 'block';
+        } else {
+          document.getElementById('trackingError').style.display = 'block';
+          const errorMsg = data.message || 'No payment found with this email.';
+          document.getElementById('errorContent').innerHTML = '<h3>⚠️ No Record Found</h3><p>' + errorMsg + '</p>';
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        document.getElementById('trackingError').style.display = 'block';
+        document.getElementById('errorContent').innerHTML = '<h3>⚠️ Error</h3><p>An error occurred while checking your status. Please try again.</p>';
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      });
+  });
+
+  // Subscription Expired Modal Functions
+  function configureSubscriptionModal(error) {
+    const modalTitle = document.getElementById('modalTitle');
+    const modalHeading = document.getElementById('modalHeading');
+    const modalDescription = document.getElementById('modalDescription');
+    const statusBadge = document.getElementById('statusBadge');
+    const actionText = document.getElementById('actionText');
+    const actionButton = document.getElementById('actionButton');
+    const actionButtonLabel = document.getElementById('actionButtonLabel');
+    const closeBtn = document.querySelector('#subscriptionModal .modal-close');
+
+    // Defaults for expired/paused cases
+    modalTitle.textContent = '⏳ Subscription Expired';
+    modalHeading.textContent = 'Your subscription has expired';
+    modalDescription.textContent = (error && error.message) || 'Your account access is currently unavailable. Please renew your subscription to continue using the TRMS platform.';
+    statusBadge.textContent = 'Subscription Expired';
+    statusBadge.className = 'detail-value badge-expired';
+    actionText.textContent = 'Renew your subscription now to regain access to your account and continue hiring.';
+    actionButtonLabel.textContent = 'Renew Subscription';
+    actionButton.onclick = redirectToSubscription;
+    closeBtn.style.display = 'none';
+
+    if (error && error.type === 'renewal_pending') {
+      modalTitle.textContent = '⏳ Renewal Pending Verification';
+      modalHeading.textContent = 'Renewal payment received';
+      modalDescription.textContent = error.message || 'Your renewal payment is being reviewed. You will regain access once approved.';
+      statusBadge.textContent = 'Verification Pending';
+      statusBadge.className = 'detail-value badge-pending';
+      actionText.textContent = 'We are verifying your renewal payment. You will regain access once approved.';
+      actionButtonLabel.textContent = 'Okay, got it';
+      actionButton.onclick = closeSubscriptionModal;
+      closeBtn.style.display = 'flex';
+    }
+  }
+
+  function openSubscriptionModal(error) {
+    configureSubscriptionModal(error);
+    document.getElementById('schoolNameDisplay').textContent = (error && error.schoolName) || 'Your School';
+    document.getElementById('subscriptionModal').style.display = 'flex';
+  }
+
+  function closeSubscriptionModal() {
+    document.getElementById('subscriptionModal').style.display = 'none';
+  }
+
+  function redirectToSubscription() {
+    // Get the email from the login form
+    const emailInput = document.getElementById('email');
+    const email = emailInput ? emailInput.value : '';
+    
+    if (email) {
+      window.location.href = '/renew-subscription?email=' + encodeURIComponent(email);
+    } else {
+      window.location.href = '/renew-subscription';
+    }
+  }
+
+  // Check if subscription error exists on page load
+  window.addEventListener('DOMContentLoaded', function() {
+    const subscriptionErrorData = <%- JSON.stringify(subscriptionError || null) %>;
+    if (subscriptionErrorData) {
+      openSubscriptionModal(subscriptionErrorData);
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

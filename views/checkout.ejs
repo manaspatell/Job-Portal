@@ -1,0 +1,750 @@
+<%- include('partials/header') %>
+
+<main class="checkout-layout">
+  <!-- Header Navigation -->
+  <div class="checkout-header">
+    <div class="header-container">
+      <div class="header-logo">TRMS</div>
+      <button class="btn-back" onclick="window.history.back()">← Back to Plans</button>
+    </div>
+  </div>
+
+  <!-- Checkout Section -->
+  <div class="checkout-container">
+    <div class="checkout-content">
+      <!-- Left Column - QR Code -->
+      <div class="qr-section">
+        <div class="qr-card">
+          <h3 class="qr-title">Scan to Pay</h3>
+          <p class="qr-subtitle">Use Google Pay, PhonePe, or any UPI app</p>
+          
+          <div class="qr-code-box">
+            <img id="qrCode" src="/uploads/bank/QR.jpeg" alt="Bank QR Code" class="qr-image">
+          </div>
+
+          <div class="plan-summary">
+            <div class="summary-header">
+              <span class="summary-label">Selected Plan:</span>
+              <span class="plan-badge-text" id="planName">Gold</span>
+            </div>
+            <div class="summary-amount">
+              <span class="amount-label">Amount to Pay:</span>
+              <span class="amount-value" id="planPrice">₹2,499</span>
+            </div>
+          </div>
+
+          <div class="payment-methods">
+            <p class="methods-label">Accepted Payment Methods:</p>
+            <div class="method-icons">
+              <div class="method-icon" title="Google Pay">
+                <span>G</span>
+              </div>
+              <div class="method-icon" title="PhonePe">
+                <span>P</span>
+              </div>
+              <div class="method-icon" title="Paytm">
+                <span>⚡</span>
+              </div>
+              <div class="method-icon" title="Bank Transfer">
+                <span>🏦</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Registration Form -->
+      <div class="form-section">
+        <div class="form-card">
+          <h2 class="form-title">Complete Your Registration</h2>
+          <p class="form-subtitle">After payment, fill in your details</p>
+
+          <form id="registrationForm" class="registration-form" enctype="multipart/form-data">
+            <input type="hidden" id="selectedPlan" name="plan" value="Gold">
+            <input type="hidden" id="userEmail" name="email" value="">
+            <div class="form-group">
+              <label for="instituteName" class="form-label">Institute Name *</label>
+              <input 
+                id="instituteName" 
+                name="instituteName" 
+                type="text" 
+                class="form-control" 
+                placeholder="Your school/college name"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="phone" class="form-label">Phone Number *</label>
+              <input 
+                id="phone" 
+                name="phone" 
+                type="tel" 
+                class="form-control" 
+                placeholder="+91 XXXXX XXXXX"
+                pattern="[0-9\+\- ]{10,}"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="whatsapp" class="form-label">WhatsApp Number *</label>
+              <input 
+                id="whatsapp" 
+                name="whatsapp" 
+                type="tel" 
+                class="form-control" 
+                placeholder="+91 XXXXX XXXXX"
+                pattern="[0-9\+\- ]{10,}"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="paymentScreenshot" class="form-label">Payment Screenshot *</label>
+              <div class="file-upload">
+                <input 
+                  id="paymentScreenshot" 
+                  name="paymentScreenshot" 
+                  type="file" 
+                  class="file-input" 
+                  accept="image/*"
+                  required
+                >
+                <div class="file-upload-area">
+                  <span class="upload-icon">📸</span>
+                  <span class="upload-text">Click to upload or drag and drop</span>
+                  <span class="upload-hint">PNG, JPG up to 5MB</span>
+                </div>
+              </div>
+              <div class="file-name" id="fileName"></div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span>Submit Payment Proof</span>
+              <span class="btn-arrow">→</span>
+            </button>
+
+            <p class="form-note">
+              <span class="note-icon">ℹ️</span>
+              Admin will verify your payment and activate your account within 2-4 hours
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="checkout-footer">
+    <p class="footer-text">© 2024 Teacher Recruitment Management System. All rights reserved.</p>
+    <div class="footer-security">
+      <span class="security-icon">🔒</span>
+      <span class="security-text">Your payment information is secure and encrypted</span>
+    </div>
+  </div>
+</main>
+
+<style>
+  /* Checkout Layout */
+  .checkout-layout {
+    background: #fafbfc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .checkout-header {
+    background: white;
+    border-bottom: 1px solid #e8ecf1;
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-logo {
+    font-size: 20px;
+    font-weight: 900;
+    color: #2c3e50;
+    letter-spacing: 1px;
+  }
+
+  .btn-back {
+    padding: 10px 20px;
+    background: white;
+    color: #0066cc;
+    border: 2px solid #0066cc;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-back:hover {
+    background: #0066cc;
+    color: white;
+  }
+
+  /* Checkout Container */
+  .checkout-container {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    width: 100%;
+  }
+
+  .checkout-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+
+  /* QR Section */
+  .qr-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qr-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .qr-title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .qr-subtitle {
+    margin: 0 0 32px;
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .qr-code-box {
+    width: 260px;
+    height: 260px;
+    background: #f8fbff;
+    border: 2px dashed #d0d8e0;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+
+  .qr-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .plan-summary {
+    width: 100%;
+    background: #f8fbff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #e0eaff;
+  }
+
+  .summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #d0d8e0;
+  }
+
+  .summary-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .plan-badge-text {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .summary-amount {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .amount-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 600;
+  }
+
+  .amount-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0066cc;
+  }
+
+  .payment-methods {
+    width: 100%;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #d0d8e0;
+  }
+
+  .methods-label {
+    margin: 0 0 16px;
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .method-icons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .method-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 1px solid #d0d8e0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .method-icon:hover {
+    border-color: #0066cc;
+    background: #f8fbff;
+  }
+
+  /* Form Section */
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-title {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .form-subtitle {
+    margin: 0 0 28px;
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
+  .form-control {
+    padding: 12px 14px;
+    border: 1px solid #d0d8e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2c3e50;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    background: #f8fbff;
+  }
+
+  .form-control::placeholder {
+    color: #bdc3d0;
+  }
+
+  /* File Upload */
+  .file-upload {
+    position: relative;
+    display: block;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .file-upload-area {
+    border: 2px dashed #d0d8e0;
+    border-radius: 8px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .file-upload-area.dragging {
+    border-color: #0066cc;
+    background: #f0f7ff;
+  }
+
+  .file-upload:hover .file-upload-area {
+    border-color: #0066cc;
+    background: #f8fbff;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+  }
+
+  .upload-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .upload-hint {
+    font-size: 12px;
+    color: #7f8c8d;
+  }
+
+  .file-name {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #27ae60;
+    font-weight: 500;
+    display: none;
+  }
+
+  .file-name.active {
+    display: block;
+  }
+
+  /* Submit Button */
+  .btn-submit {
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+  }
+
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+
+  .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-arrow {
+    font-size: 16px;
+  }
+
+  /* Form Note */
+  .form-note {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    border-left: 4px solid #0066cc;
+    font-size: 12px;
+    color: #0052a3;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .note-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+
+  /* Footer */
+  .checkout-footer {
+    background: white;
+    border-top: 1px solid #e8ecf1;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .footer-text {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .footer-security {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #27ae60;
+    font-weight: 500;
+  }
+
+  .security-icon {
+    font-size: 14px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .checkout-container {
+      padding: 40px 30px;
+    }
+
+    .checkout-content {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .qr-card {
+      padding: 30px;
+    }
+
+    .form-card {
+      padding: 30px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      padding: 0 20px;
+    }
+
+    .checkout-container {
+      padding: 30px 20px;
+    }
+
+    .checkout-content {
+      gap: 30px;
+    }
+
+    .qr-card,
+    .form-card {
+      padding: 24px;
+    }
+
+    .qr-code-box {
+      width: 200px;
+      height: 200px;
+    }
+
+    .form-title {
+      font-size: 20px;
+    }
+
+    .file-upload-area {
+      padding: 24px 16px;
+    }
+
+    .checkout-footer {
+      padding: 24px 20px;
+    }
+  }
+</style>
+
+<script>
+  // Get plan details from URL
+  function initializePage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan') || 'Gold';
+    const emailFromUrl = urlParams.get('email') || '';
+    
+    const planDetails = {
+      'Silver': { price: '999', name: 'Silver' },
+      'Gold': { price: '2499', name: 'Gold' },
+      'Diamond': { price: '5999', name: 'Diamond' }
+    };
+
+    const selected = planDetails[plan] || planDetails['Gold'];
+    
+    // Update plan display and hidden fields
+    document.getElementById('planName').textContent = selected.name;
+    document.getElementById('planPrice').textContent = '₹' + selected.price;
+    document.getElementById('selectedPlan').value = selected.name;
+    document.getElementById('userEmail').value = emailFromUrl;
+
+    // Generate UPI QR code
+    // QR code image is now static, do not overwrite src
+  }
+
+  const fileInput = document.getElementById('paymentScreenshot');
+  const fileArea = document.querySelector('.file-upload-area');
+  const fileNameEl = document.getElementById('fileName');
+
+  function updateFileName(file) {
+    if (file) {
+      fileNameEl.textContent = '✓ ' + file.name + ' uploaded';
+      fileNameEl.classList.add('active');
+    }
+  }
+
+  // File upload handling
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    updateFileName(file);
+  });
+
+  fileArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  fileArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    fileArea.classList.add('dragging');
+  });
+
+  fileArea.addEventListener('dragleave', function() {
+    fileArea.classList.remove('dragging');
+  });
+
+  fileArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    fileArea.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      fileInput.files = e.dataTransfer.files;
+      updateFileName(file);
+    }
+  });
+
+  // Form submission
+  document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('submitBtn');
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    fetch('/checkout/submit', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const pendingUrl = `/verification-pending?plan=${encodeURIComponent(formData.get('plan'))}`;
+        window.location.href = pendingUrl;
+      } else {
+        alert('Error: ' + (data.message || 'Something went wrong'));
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Submit Payment Proof</span><span class="btn-arrow">→</span>';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error submitting form. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Submit Payment Proof</span><span class="btn-arrow">→</span>';
+    });
+  });
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initializePage);
+</script>
+
+<%- include('partials/footer') %>

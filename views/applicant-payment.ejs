@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+<main class="payment-layout saas-payment">
+  <section class="payment-section">
+    <div class="center-wrap">
+      <div class="step-indicator">
+        <span class="step active">1</span> <span class="step-label">Scan & Pay</span>
+        <span class="step">2</span> <span class="step-label">Upload Proof</span>
+        <span class="step">3</span> <span class="step-label">Verification</span>
+      </div>
+      <div class="payment-card">
+        <h2 class="card-title">Complete Your Application Payment</h2>
+        <p class="card-desc">Pay securely to activate your application. All payments are encrypted and verified by our team.</p>
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        <div class="payment-details">
+          <div class="qr-box">
+            <img src="/uploads/bank/QR.jpeg" alt="Bank QR Code" class="payment-qr">
+          </div>
+          <div class="summary-box">
+            <div class="summary-row"><span>Amount:</span> <strong>₹499</strong></div>
+            <div class="summary-row"><span>UPI ID:</span> <strong>your-upi@bank</strong></div>
+            <div class="summary-row"><span>Application Type:</span> <strong>Paid</strong></div>
+            <div class="trust-badges">
+              <span class="badge secure">🔒 Secure Payment</span>
+              <span class="badge verified">✔️ Verified by TRMS</span>
+            </div>
+          </div>
+        </div>
+        <form method="POST" action="/apply/payment/<%= applicant._id %>" enctype="multipart/form-data" class="payment-form">
+          <div class="form-group">
+            <label for="paymentProof">Upload Payment Proof <span class="required">*</span></label>
+            <input type="file" id="paymentProof" name="paymentProof" accept="image/*" required class="form-control">
+            <small>Accepted: JPG, PNG, PDF. Max 5MB.</small>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Submit Payment Proof</button>
+        </form>
+        <div class="note">Need help? <a href="mailto:support@trms.com">Contact Support</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+<style>
+  .saas-payment { background: #f7f9fc; min-height: 100vh; }
+  .payment-section { min-height: 80vh; padding: 0 12px; display: flex; align-items: center; justify-content: center; }
+  .center-wrap { width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+  .payment-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 40px 32px; max-width: 420px; width: 100%; }
+  .card-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 8px; text-align: center; }
+  .card-desc { color: #6b7287; margin-bottom: 18px; font-size: 1rem; text-align: center; }
+  .step-indicator { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .step { background: #e7e9f0; color: #1f2a44; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+  .step.active { background: #2563eb; color: #fff; }
+  .step-label { font-size: 0.95rem; color: #6b7287; margin-right: 12px; margin-bottom: 4px; }
+  .payment-details { display: flex; gap: 18px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .qr-box { flex: 0 0 120px; display: flex; justify-content: center; align-items: center; }
+  .payment-qr { width: 120px; height: 120px; border-radius: 8px; border: 1px solid #e7e9f0; }
+  .summary-box { flex: 1; min-width: 160px; }
+  .summary-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 1rem; }
+  .trust-badges { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { font-size: 0.85rem; padding: 2px 8px; border-radius: 6px; background: #e7e9f0; color: #2563eb; font-weight: 500; margin-bottom: 4px; }
+  .badge.secure { background: #e0f7fa; color: #059669; }
+  .badge.verified { background: #e0e7ff; color: #2563eb; }
+  .payment-form { margin-top: 18px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { font-weight: 500; margin-bottom: 6px; display: block; }
+  .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e7e9f0; font-size: 1rem; }
+  .btn-block { width: 100%; margin-top: 8px; padding: 12px 0; font-size: 1.1rem; border-radius: 8px; }
+  .btn-primary { background: #2563eb; color: #fff; border: none; font-weight: 600; transition: background 0.2s; }
+  .btn-primary:hover, .btn-primary:focus { background: #1746a2; }
+  .note { margin-top: 18px; text-align: center; color: #6b7287; font-size: 0.95rem; }
+  .note a { color: #2563eb; text-decoration: underline; }
+  @media (max-width: 600px) {
+    .payment-section { min-height: unset; padding: 0 4px; }
+    .payment-card { padding: 24px 6px; border-radius: 10px; }
+    .card-title { font-size: 1.2rem; }
+    .payment-qr { width: 90px; height: 90px; }
+    .summary-box { min-width: 120px; font-size: 0.95rem; }
+    .btn-block { font-size: 1rem; padding: 10px 0; }
+    .step { width: 22px; height: 22px; font-size: 0.95rem; }
+    .step-label { font-size: 0.85rem; }
+    .trust-badges { gap: 4px; }
+  }
+</style>
+<%- include('partials/footer') %>

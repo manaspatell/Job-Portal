@@ -1,0 +1,38 @@
+/* Dark theme for 404 error page */
+.error-section.saas-dark {
+  background: #181c23;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-box.saas-dark {
+  background: #232837;
+  border-radius: 14px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.45);
+  padding: 48px 36px 40px 36px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.error-box.saas-dark img {
+  filter: drop-shadow(0 2px 8px #0008);
+}
+
+.error-box.saas-dark h2 {
+  color: #f25c5c;
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  letter-spacing: -1px;
+}
+
+.error-box.saas-dark p {
+  color: #bfc9d1;
+  font-size: 1.08rem;
+  margin-bottom: 0;
+  font-weight: 500;
+  line-height: 1.7;
+}

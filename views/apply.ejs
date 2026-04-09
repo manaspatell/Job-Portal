@@ -1,0 +1,496 @@
+<%- include('partials/header') %>
+
+
+<main class="saas-apply-container">
+  <section class="saas-apply-card">
+    <h2 class="saas-apply-title">Job Application</h2>
+    <% if (typeof duplicate !== 'undefined' && duplicate) { %>
+      <div id="duplicateModal" class="saas-modal-overlay" style="display:flex;">
+        <div class="saas-modal-card">
+          <div class="saas-modal-title">You have already applied</div>
+          <div class="saas-modal-desc">You have already submitted an application with this email or phone number.</div>
+          <form method="POST" action="/withdraw-application" style="margin-top:1.2rem;">
+            <input type="hidden" name="email" value="<%= duplicateEmail %>">
+            <input type="hidden" name="phone" value="<%= duplicatePhone %>">
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:0.5rem;">Withdraw your application</button>
+          </form>
+          <button class="btn btn-secondary" style="width:100%;" onclick="window.location='/apply'">Close</button>
+        </div>
+      </div>
+    <% } else { %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <form method="POST" action="/apply" enctype="multipart/form-data" class="saas-apply-form">
+      <div class="saas-form-section">
+        <h3>Personal Information</h3>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="name">Full Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" required placeholder="Enter your full name" class="form-control">
+          </div>
+          <div class="saas-form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" required placeholder="Enter your email address" class="form-control">
+          </div>
+        </div>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="gender">Gender <span class="required">*</span></label>
+            <select id="gender" name="gender" required class="form-control">
+              <option value="">Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-binary">Non-binary</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="saas-form-group">
+            <label for="phone">Phone Number <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number" class="form-control">
+          </div>
+        </div>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="state">State <span class="required">*</span></label>
+            <select id="state" name="state" required class="form-control">
+              <option value="">Select your state</option>
+            </select>
+          </div>
+          <div class="saas-form-group">
+            <label for="city">City <span class="required">*</span></label>
+            <select id="city" name="city" required class="form-control">
+              <option value="">Select your city</option>
+            </select>
+          </div>
+        <script>
+        // Minimal but comprehensive Indian states and cities dataset
+        const statesCities = {
+          "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Rajahmundry", "Tirupati", "Anantapur", "Kadapa", "Kakinada"],
+          "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro", "Bomdila"],
+          "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tinsukia", "Tezpur", "Karimganj", "Sivasagar", "Goalpara"],
+          "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga", "Arrah", "Begusarai", "Katihar", "Munger"],
+          "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon", "Jagdalpur", "Ambikapur", "Raigarh", "Mahasamund"],
+          "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa", "Ponda"],
+          "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar", "Junagadh", "Gandhidham", "Nadiad"],
+          "Haryana": ["Faridabad", "Gurgaon", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar", "Karnal", "Sonipat", "Panchkula"],
+          "Himachal Pradesh": ["Shimla", "Mandi", "Solan", "Dharamshala", "Una", "Nahan", "Bilaspur", "Hamirpur", "Chamba", "Kullu"],
+          "Jharkhand": ["Ranchi", "Dhanbad", "Jamshedpur", "Bokaro", "Deoghar", "Phusro", "Hazaribagh", "Giridih", "Ramgarh", "Medininagar"],
+          "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum", "Gulbarga", "Davanagere", "Bellary", "Shimoga", "Tumkur"],
+          "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Kollam", "Thrissur", "Alappuzha", "Palakkad", "Malappuram", "Kottayam", "Kannur"],
+          "Madhya Pradesh": ["Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", "Ratlam", "Rewa"],
+          "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Solapur", "Amravati", "Kolhapur", "Nanded"],
+          "Manipur": ["Imphal", "Thoubal", "Bishnupur", "Churachandpur", "Kakching", "Ukhrul", "Senapati", "Tamenglong", "Chandel", "Jiribam"],
+          "Meghalaya": ["Shillong", "Tura", "Nongstoin", "Jowai", "Baghmara", "Williamnagar", "Resubelpara", "Mairang", "Nongpoh", "Mankachar"],
+          "Mizoram": ["Aizawl", "Lunglei", "Saiha", "Champhai", "Serchhip", "Kolasib", "Lawngtlai", "Mamit", "Saitual", "Hnahthial"],
+          "Nagaland": ["Dimapur", "Kohima", "Mokokchung", "Tuensang", "Wokha", "Zunheboto", "Mon", "Phek", "Kiphire", "Longleng"],
+          "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur", "Puri", "Balasore", "Bhadrak", "Baripada", "Jharsuguda"],
+          "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur", "Batala", "Pathankot", "Moga"],
+          "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", "Sikar", "Pali"],
+          "Sikkim": ["Gangtok", "Namchi", "Mangan", "Gyalshing", "Rangpo", "Jorethang", "Singtam", "Soreng", "Chungthang", "Ravangla"],
+          "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore", "Erode", "Thoothukudi", "Dindigul"],
+          "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Ramagundam", "Khammam", "Mahbubnagar", "Adilabad", "Suryapet", "Miryalaguda"],
+          "Tripura": ["Agartala", "Udaipur", "Dharmanagar", "Kailasahar", "Ambassa", "Khowai", "Belonia", "Sonamura", "Teliamura", "Bishalgarh"],
+          "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Allahabad", "Bareilly", "Aligarh", "Moradabad"],
+          "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Haldwani", "Rudrapur", "Kashipur", "Rishikesh", "Nainital", "Pithoragarh", "Mussoorie"],
+          "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Maheshtala", "Rajpur Sonarpur", "South Dumdum", "Bhatpara", "Kamarhati"],
+          "Andaman and Nicobar Islands": ["Port Blair", "Garacharma", "Bamboo Flat", "Prothrapur", "Rangat"],
+          "Chandigarh": ["Chandigarh"],
+          "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Silvassa", "Amli", "Kachigam"],
+          "Delhi": ["New Delhi", "Delhi", "Dwarka", "Rohini", "Karol Bagh", "Saket", "Vasant Kunj", "Janakpuri", "Laxmi Nagar", "Pitampura"],
+          "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Kathua", "Udhampur", "Sopore", "Rajouri", "Poonch", "Pulwama"],
+          "Ladakh": ["Leh", "Kargil"],
+          "Lakshadweep": ["Kavaratti", "Agatti", "Amini", "Andrott", "Kalpeni"],
+          "Puducherry": ["Puducherry", "Karaikal", "Mahe", "Yanam"]
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+          const stateSelect = document.getElementById('state');
+          const citySelect = document.getElementById('city');
+          // Populate states
+          Object.keys(statesCities).forEach(state => {
+            const opt = document.createElement('option');
+            opt.value = state;
+            opt.textContent = state;
+            stateSelect.appendChild(opt);
+          });
+          // Populate cities on state change
+          stateSelect.addEventListener('change', function() {
+            const selectedState = this.value;
+            citySelect.innerHTML = '<option value="">Select your city</option>';
+            if (selectedState && statesCities[selectedState]) {
+              statesCities[selectedState].forEach(city => {
+                const opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                citySelect.appendChild(opt);
+              });
+            }
+          });
+        });
+        </script>
+        </div>
+      </div>
+      <div class="saas-form-section">
+        <h3>Professional Information</h3>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="highestQualification">Highest Qualification <span class="required">*</span></label>
+            <select id="highestQualification" name="highestQualification" required class="form-control">
+              <option value="">Select your highest qualification</option>
+              <option value="B.Ed">B.Ed (Bachelor of Education)</option>
+              <option value="M.Ed">M.Ed (Master of Education)</option>
+              <option value="B.A. B.Ed">B.A. B.Ed (Integrated)</option>
+              <option value="B.Sc. B.Ed">B.Sc. B.Ed (Integrated)</option>
+              <option value="D.El.Ed">D.El.Ed (Diploma in Elementary Education)</option>
+              <option value="Ph.D.">Ph.D. (Doctorate)</option>
+              <option value="B.A.">B.A. (Bachelor of Arts)</option>
+              <option value="B.Sc.">B.Sc. (Bachelor of Science)</option>
+              <option value="B.Com.">B.Com. (Bachelor of Commerce)</option>
+              <option value="M.A.">M.A. (Master of Arts)</option>
+              <option value="M.Sc.">M.Sc. (Master of Science)</option>
+              <option value="M.Com.">M.Com. (Master of Commerce)</option>
+              <option value="B.Tech/B.E.">B.Tech/B.E. (Engineering)</option>
+              <option value="M.Tech/M.E.">M.Tech/M.E. (Engineering)</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="saas-form-group">
+            <label for="collegeName">College/University Name <span class="required">*</span></label>
+            <input type="text" id="collegeName" name="collegeName" required placeholder="Enter your college/university name" class="form-control">
+          </div>
+        </div>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="collegeTier">College Tier <span class="required">*</span></label>
+            <select id="collegeTier" name="collegeTier" required class="form-control">
+              <option value="">Select college tier</option>
+              <option value="Tier 1">Tier 1 (IIT, NIT, Central Universities)</option>
+              <option value="Tier 2">Tier 2 (State Universities, Private Top Institutions)</option>
+              <option value="Tier 3">Tier 3 (Other Universities)</option>
+            </select>
+          </div>
+          <div class="saas-form-group">
+            <label for="skills">Skills & Subjects You Can Teach <span class="required">*</span></label>
+            <textarea id="skills" name="skills" required placeholder="E.g., Mathematics, Science, English, Computer Science, Classroom Management, Online Teaching, etc." rows="4" class="form-control"></textarea>
+            <small class="form-text">List subjects, teaching methodologies, certifications (CTET/TET), technical skills, etc.</small>
+          </div>
+        </div>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="expectedSalary">Expected Salary <span class="required">*</span></label>
+            <input type="number" id="expectedSalary" name="expectedSalary" required placeholder="Enter expected salary" class="form-control">
+          </div>
+          <div class="saas-form-group">
+            <label for="preferredLocation">Preferred Location <span class="required">*</span></label>
+            <select id="preferredLocation" name="preferredLocation" required class="form-control">
+              <option value="">Select preferred location</option>
+              <optgroup label="India - Major Cities">
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Bangalore">Bangalore</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Pune">Pune</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Kolkata">Kolkata</option>
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Surat">Surat</option>
+                <option value="Jaipur">Jaipur</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Kanpur">Kanpur</option>
+                <option value="Nagpur">Nagpur</option>
+                <option value="Indore">Indore</option>
+                <option value="Thane">Thane</option>
+                <option value="Bhopal">Bhopal</option>
+                <option value="Visakhapatnam">Visakhapatnam</option>
+                <option value="Patna">Patna</option>
+                <option value="Vadodara">Vadodara</option>
+                <option value="Ghaziabad">Ghaziabad</option>
+                <option value="Ludhiana">Ludhiana</option>
+                <option value="Agra">Agra</option>
+                <option value="Nashik">Nashik</option>
+                <option value="Faridabad">Faridabad</option>
+                <option value="Meerut">Meerut</option>
+                <option value="Rajkot">Rajkot</option>
+                <option value="Varanasi">Varanasi</option>
+                <option value="Srinagar">Srinagar</option>
+                <option value="Aurangabad">Aurangabad</option>
+                <option value="Dhanbad">Dhanbad</option>
+                <option value="Amritsar">Amritsar</option>
+                <option value="Navi Mumbai">Navi Mumbai</option>
+                <option value="Allahabad">Allahabad</option>
+                <option value="Ranchi">Ranchi</option>
+                <option value="Howrah">Howrah</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Vijayawada">Vijayawada</option>
+                <option value="Jodhpur">Jodhpur</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Raipur">Raipur</option>
+                <option value="Kota">Kota</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Guwahati">Guwahati</option>
+                <option value="Solapur">Solapur</option>
+                <option value="Hubli-Dharwad">Hubli-Dharwad</option>
+                <option value="Mysore">Mysore</option>
+                <option value="Tiruchirappalli">Tiruchirappalli</option>
+                <option value="Bareilly">Bareilly</option>
+                <option value="Aligarh">Aligarh</option>
+                <option value="Tiruppur">Tiruppur</option>
+                <option value="Moradabad">Moradabad</option>
+              </optgroup>
+              <optgroup label="USA - Major Cities">
+                <option value="New York">New York</option>
+                <option value="Los Angeles">Los Angeles</option>
+                <option value="Chicago">Chicago</option>
+                <option value="Houston">Houston</option>
+                <option value="Phoenix">Phoenix</option>
+                <option value="San Francisco">San Francisco</option>
+                <option value="Seattle">Seattle</option>
+                <option value="Boston">Boston</option>
+                <option value="Austin">Austin</option>
+                <option value="Denver">Denver</option>
+              </optgroup>
+              <optgroup label="Work Style">
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="saas-form-section">
+        <h3>CV Upload</h3>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label for="cv">CV (PDF, DOC, DOCX only) <span class="required">*</span></label>
+            <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" required class="form-control">
+            <small>Max file size: 5MB</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="saas-form-section">
+        <h3>Application Type</h3>
+        <div class="saas-form-row">
+          <div class="saas-form-group">
+            <label><input type="checkbox" id="isPaid" name="isPaid" value="true" onchange="togglePaidBenefits()"> Apply as Paid (Premium)</label>
+          </div>
+        </div>
+        <div id="paidBenefits" class="saas-form-group" style="display:none; margin-top:0.5rem;">
+          <div class="saas-paid-benefits">
+            <strong>Paid Application Benefits:</strong>
+            <ul style="margin:0.5rem 0 0 1.2rem;">
+              <li>Priority listing for recruiters</li>
+              <li>Direct contact from schools</li>
+              <li>Profile highlighted as premium</li>
+              <li>Access to exclusive job postings</li>
+              <li>Faster application review</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="saas-form-actions">
+        <button type="submit" class="btn btn-primary">Submit Application</button>
+        <button type="reset" class="btn btn-secondary">Clear Form</button>
+      </div>
+      </form>
+    <% } %>
+  </style>
+
+  <style>
+    .saas-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(30, 34, 90, 0.18);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-width: 100vw;
+    }
+    .saas-modal-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+      padding: 2rem 2.2rem 1.5rem 2.2rem;
+      max-width: 350px;
+      width: 98vw;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: saasModalPop 0.18s cubic-bezier(.4,1.6,.6,1) 1;
+    }
+    .saas-modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a237e;
+      margin-bottom: 0.5rem;
+    }
+    .saas-modal-desc {
+      color: #333;
+      font-size: 1rem;
+      margin-bottom: 0.7rem;
+    }
+    @keyframes saasModalPop {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+  </section>
+</main>
+
+<script>
+  function togglePaidBenefits() {
+    var paid = document.getElementById('isPaid').checked;
+    document.getElementById('paidBenefits').style.display = paid ? 'block' : 'none';
+  }
+</script>
+
+<style>
+  .saas-apply-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #f7fafd;
+    padding: 2rem 0;
+  }
+  .saas-apply-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    padding: 2rem 2rem 1.5rem 2rem;
+    max-width: 700px;
+    width: 100%;
+    margin: 2rem 1rem;
+  }
+  .saas-apply-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #1a237e;
+  }
+  .saas-apply-form {
+    width: 100%;
+  }
+  .saas-form-section {
+    margin-bottom: 2rem;
+  }
+  .saas-form-section h3 {
+    font-size: 1.2rem;
+    color: #1976d2;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  .saas-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .saas-form-group {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+  }
+  .saas-form-group label {
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    color: #333;
+  }
+  .saas-form-group input,
+  .saas-form-group select,
+  .saas-form-group textarea {
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    background: #f9f9fb;
+    margin-bottom: 0.2rem;
+    transition: border 0.2s;
+  }
+  .saas-form-group input:focus,
+  .saas-form-group select:focus,
+  .saas-form-group textarea:focus {
+    border: 1.5px solid #1976d2;
+    outline: none;
+    background: #fff;
+  }
+  .saas-form-group .form-text {
+    font-size: 0.85rem;
+    color: #607d8b;
+  }
+  .saas-form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+  .btn.btn-primary {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn.btn-primary:hover {
+    background: #0d47a1;
+  }
+  .btn.btn-secondary {
+    background: #e3eafc;
+    color: #1976d2;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn.btn-secondary:hover {
+    background: #bbdefb;
+  }
+  @media (max-width: 900px) {
+    .saas-apply-card {
+      max-width: 98vw;
+      padding: 1.2rem 0.5rem 1rem 0.5rem;
+    }
+    .saas-form-row {
+      gap: 1rem;
+    }
+  }
+  @media (max-width: 600px) {
+    .saas-apply-container {
+      padding: 0.5rem 0;
+    }
+    .saas-apply-card {
+      margin: 0.5rem 0.1rem;
+      padding: 0.7rem 0.2rem 0.7rem 0.2rem;
+      border-radius: 8px;
+    }
+    .saas-form-row {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .saas-form-group {
+      min-width: 0;
+    }
+    .saas-form-section {
+      margin-bottom: 1.2rem;
+    }
+    .saas-form-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,588 @@
+<%- include('partials/header') %>
+
+
+<main class="pricing-layout">
+  <!-- SaaS Hero Section -->
+  <section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">Flexible, Transparent Pricing for Schools</h1>
+      <p class="hero-subtitle">Empower your recruitment with plans designed for every stage of your school's growth.</p>
+      <% if (typeof email !== 'undefined' && email) { %>
+        <div class="hero-personal">Welcome, <span class="hero-email"><%= email %></span>!</div>
+      <% } %>
+      <a href="#plans" class="hero-cta">See Plans</a>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <div class="pricing-container" id="plans">
+    <div class="pricing-header-content">
+      <h2 class="pricing-title">Choose Your Plan</h2>
+      <p class="pricing-subtitle">Simple pricing, no hidden fees. Upgrade, downgrade, or cancel anytime.</p>
+    </div>
+
+    <div class="pricing-cards">
+      <% 
+        const planIcons = {
+          silver: '<i class="fa-solid fa-medal" style="color:#9ca3af"></i>',
+          gold: '<i class="fa-solid fa-medal" style="color:#f59e0b"></i>',
+          diamond: '<i class="fa-solid fa-gem" style="color:#60a5fa"></i>'
+        };
+        const plans = [
+          { id: 'silver', name: 'Silver', featured: false },
+          { id: 'gold', name: 'Gold', featured: true },
+          { id: 'diamond', name: 'Diamond', featured: false }
+        ];
+        plans.forEach(plan => {
+          const planData = pricing[plan.id] || {};
+          const finalPrice = planData.currentPrice || planData.basePrice || 0;
+          const discount = planData.discount || 0;
+          const discountType = planData.discountType || 'percentage';
+          const basePrice = planData.basePrice || 0;
+          const savings = discount > 0 ? 
+            (discountType === 'percentage' ? 
+              Math.round(basePrice * discount / 100) : 
+              discount) : 0;
+      %>
+      <!-- <%= plan.name %> Plan -->
+      <div class="pricing-card <%= plan.id %>-plan <%= plan.featured ? 'featured' : '' %>">
+        <% if (plan.featured) { %>
+          <div class="plan-badge">Most Popular</div>
+        <% } %>
+        <div class="plan-icon"><%- planIcons[plan.id] %></div>
+        <div class="plan-header">
+          <h3 class="plan-name"><%= plan.name %></h3>
+          <p class="plan-description"><%= planData.description || 'Professional plan' %></p>
+        </div>
+        <div class="plan-price">
+          <% if (discount > 0) { %>
+            <span class="original-price">₹<%= basePrice.toLocaleString('en-IN') %></span>
+          <% } %>
+          <span class="price-amount">₹<%= finalPrice.toLocaleString('en-IN') %></span>
+          <span class="price-period">/<%= planData.duration || 'month' %></span>
+        </div>
+        <% if (discount > 0) { %>
+          <div class="discount-banner">
+            Save ₹<%= savings.toLocaleString('en-IN') %> | <%= discount %><%= discountType === 'percentage' ? '%' : '' %> OFF
+          </div>
+        <% } %>
+        <p class="plan-tagline">
+          <% if (plan.id === 'silver') { %>
+            Get started with basic features
+          <% } else if (plan.id === 'gold') { %>
+            Everything you need to scale
+          <% } else { %>
+            Maximum power and flexibility
+          <% } %>
+        </p>
+        <button class="plan-button <%= plan.featured ? 'featured-button' : '' %>" onclick="selectPlan('<%= plan.name %>')">Get Started</button>
+        <div class="plan-features">
+          <% (planData.features || []).forEach(feature => { %>
+            <div class="feature">
+              <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+              <span><%= feature %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <!-- Testimonial Section -->
+    <div class="testimonial-section">
+      <div class="testimonial-quote">“The subscription plans made our hiring process 3x faster and more organized. Highly recommended!”</div>
+      <div class="testimonial-user">
+        <img src="/public/images/icon/user-avatar.png" alt="User" class="testimonial-avatar" onerror="this.style.display='none'">
+        <div class="testimonial-meta">
+          <div class="testimonial-name">Principal Sharma</div>
+          <div class="testimonial-role">Delhi Public School</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+      <h2 class="faq-title">Frequently Asked Questions</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4 class="faq-question">Can I change plans anytime?</h4>
+          <p class="faq-answer">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-question">Is there a free trial?</h4>
+          <p class="faq-answer">Absolutely! Get 14 days free access to any plan. No credit card required.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-question">What payment methods do you accept?</h4>
+          <p class="faq-answer">We accept all major credit cards, debit cards, and bank transfers for enterprise plans.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-question">Do you offer discounts for annual billing?</h4>
+          <p class="faq-answer">Yes! Pay annually and save 20% compared to monthly billing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="pricing-footer">
+    <p class="footer-text">© 2024 Teacher Recruitment Management System. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#" class="footer-link">Privacy Policy</a>
+      <a href="#" class="footer-link">Terms of Service</a>
+      <a href="#" class="footer-link">Contact Us</a>
+    </div>
+  </div>
+</main>
+
+<style>
+  /* Pricing Layout */
+  .pricing-layout {
+    background: #fafbfc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Pricing Container */
+  .pricing-container {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    width: 100%;
+  }
+
+  .pricing-header-content {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .pricing-title {
+    margin: 0 0 16px;
+    font-size: 48px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+  }
+
+  .pricing-subtitle {
+    margin: 0;
+    font-size: 18px;
+    color: #5a6c7d;
+    font-weight: 500;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Pricing Cards */
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-bottom: 80px;
+  }
+
+  .pricing-card {
+    background: white;
+    border: 1px solid #e8ecf1;
+    border-radius: 16px;
+    padding: 40px 32px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-card:hover {
+    border-color: #d0d8e0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Featured Card (Gold) */
+  .pricing-card.featured {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    transform: scale(1.08);
+    box-shadow: 0 12px 40px rgba(0, 102, 204, 0.2);
+  }
+
+  .pricing-card.featured:hover {
+    box-shadow: 0 16px 48px rgba(0, 102, 204, 0.3);
+    border-color: transparent;
+  }
+
+  .pricing-card.featured .plan-name,
+  .pricing-card.featured .plan-description,
+  .pricing-card.featured .price-amount,
+  .pricing-card.featured .price-period,
+  .pricing-card.featured .plan-tagline,
+  .pricing-card.featured .feature {
+    color: white;
+  }
+
+  .pricing-card.featured .plan-description {
+    opacity: 0.9;
+  }
+
+  .pricing-card.featured .plan-tagline {
+    opacity: 0.85;
+  }
+
+  .pricing-card.featured .feature {
+    opacity: 0.95;
+  }
+
+  .pricing-card.featured .check-icon {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: white;
+    color: #0066cc;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .plan-header {
+    margin-bottom: 24px;
+  }
+
+  .plan-name {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .plan-description {
+    margin: 0;
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .plan-price {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .original-price {
+    font-size: 16px;
+    color: #7f8c8d;
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+
+  .price-amount {
+    font-size: 42px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .price-period {
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .discount-banner {
+    background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+    color: #c33;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    border-left: 4px solid #c33;
+  }
+
+  .plan-tagline {
+    margin: 0 0 28px;
+    font-size: 14px;
+    color: #5a6c7d;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .plan-button {
+    padding: 12px 20px;
+    background: white;
+    color: #2c3e50;
+    border: 2px solid #e8ecf1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .plan-button:hover {
+    background: #f8fbff;
+    border-color: #0066cc;
+    color: #0066cc;
+    transform: translateY(-2px);
+  }
+
+  .plan-button:active {
+    transform: translateY(0);
+  }
+
+  .featured-button {
+    background: white;
+    color: #0066cc;
+    border: 2px solid white;
+  }
+
+  .featured-button:hover {
+    background: #f0f7ff;
+    color: #0052a3;
+  }
+
+  .plan-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #5a6c7d;
+    font-weight: 500;
+  }
+
+  .check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #f0f7ff;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #0066cc;
+    font-weight: 700;
+  }
+
+  /* FAQ Section */
+  .faq-section {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 40px;
+    margin-top: 40px;
+  }
+
+  .faq-title {
+    margin: 0 0 40px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .faq-item {
+    padding: 24px;
+    border-radius: 12px;
+    background: #fafbfc;
+    border: 1px solid #e8ecf1;
+  }
+
+  .faq-question {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .faq-answer {
+    margin: 0;
+    font-size: 14px;
+    color: #5a6c7d;
+    line-height: 1.6;
+  }
+
+  /* Footer */
+  .pricing-footer {
+    background: white;
+    border-top: 1px solid #e8ecf1;
+    padding: 40px;
+    text-align: center;
+    margin-top: auto;
+  }
+
+  .footer-text {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  .footer-link {
+    font-size: 13px;
+    color: #5a6c7d;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  .footer-link:hover {
+    color: #0066cc;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .header-container {
+      padding: 0 30px;
+      gap: 20px;
+    }
+
+    .pricing-container {
+      padding: 60px 30px;
+    }
+
+    .pricing-cards {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .pricing-card.featured {
+      transform: scale(1);
+    }
+
+    .pricing-title {
+      font-size: 36px;
+    }
+
+    .pricing-subtitle {
+      font-size: 16px;
+    }
+
+    .faq-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      flex-wrap: wrap;
+      padding: 12px 20px;
+    }
+
+    .header-nav {
+      order: 3;
+      flex-basis: 100%;
+      justify-content: flex-start;
+      gap: 20px;
+    }
+
+    .pricing-container {
+      padding: 40px 20px;
+    }
+
+    .pricing-header-content {
+      margin-bottom: 40px;
+    }
+
+    .pricing-title {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .pricing-subtitle {
+      font-size: 14px;
+    }
+
+    .pricing-cards {
+      gap: 16px;
+    }
+
+    .pricing-card {
+      padding: 30px 24px;
+    }
+
+    .plan-price {
+      margin-bottom: 8px;
+    }
+
+    .price-amount {
+      font-size: 32px;
+    }
+
+    .plan-button {
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .feature {
+      font-size: 13px;
+      gap: 10px;
+    }
+
+    .faq-section {
+      padding: 40px 20px;
+    }
+
+    .faq-title {
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .pricing-footer {
+      padding: 24px 20px;
+    }
+  }
+</style>
+
+<script>
+
+  function selectPlan(planName) {
+    const userEmail = localStorage.getItem('userEmail') || 'user@email.com';
+    // Redirect to checkout page with plan and email
+    window.location.href = `/checkout?plan=${planName}&email=${encodeURIComponent(userEmail)}`;
+  }
+  // Display the email if available
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    if (email) {
+      localStorage.setItem('userEmail', email);
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>
